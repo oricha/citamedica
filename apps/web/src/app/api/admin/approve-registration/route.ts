@@ -62,6 +62,15 @@ export async function POST(req: Request) {
             data: { status: 'APPROVED', approvedAt: new Date() },
         });
 
+        // audit log
+        await prisma.auditLog.create({
+          data: {
+            actorUserId: String(session.user.id),
+            action: 'APPROVE_CLINIC',
+            metadata: { clinicId: clinic.id, teamId: team.id, registrationId },
+          }
+        });
+
         return NextResponse.json({ message: 'Clinic approved successfully' }, { status: 200 });
 
     } else if (registration.type === 'DOCTOR') {
@@ -104,6 +113,15 @@ export async function POST(req: Request) {
         await prisma.pendingRegistration.update({
             where: { id: registrationId },
             data: { status: 'APPROVED', approvedAt: new Date() },
+        });
+
+        // audit log
+        await prisma.auditLog.create({
+          data: {
+            actorUserId: String(session.user.id),
+            action: 'APPROVE_DOCTOR',
+            metadata: { userId: user.id, calcomUserId: calcomUser.id, registrationId },
+          }
         });
 
         return NextResponse.json({ message: 'Doctor approved successfully' }, { status: 200 });

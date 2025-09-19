@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (user && user.password && await bcrypt.compare(credentials.password, user.password)) {
-          return { id: user.id, name: user.name, email: user.email, role: user.role };
+          return { id: user.id, name: user.name, email: user.email, role: user.role } as any;
         } else {
           return null;
         }
@@ -41,6 +41,18 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         // @ts-ignore
         token.role = user.role;
+        // enrich token with Cal.com IDs
+        try {
+          const dbUser = await prisma.user.findUnique({ where: { id: String(user.id) }, include: { clinicsAsAdmin: true } });
+          // @ts-ignore
+          token.calcomUserId = dbUser?.calcomUserId || null;
+          // If clinic admin, take first clinic's team id as context
+          const clinicTeamId = dbUser?.clinicsAsAdmin?.[0]?.calcomTeamId || null;
+          // @ts-ignore
+          token.clinicTeamId = clinicTeamId;
+        } catch (e) {
+          // ignore enrichment failures
+        }
       }
       return token;
     },
@@ -50,6 +62,10 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id;
         // @ts-ignore
         session.user.role = token.role;
+        // @ts-ignore
+        session.user.calcomUserId = token.calcomUserId || null;
+        // @ts-ignore
+        session.user.clinicTeamId = token.clinicTeamId || null;
       }
       return session;
     }

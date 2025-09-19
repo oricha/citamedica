@@ -1,16 +1,147 @@
 ---
 
 ---
+---
+const siteUrl = 'https://medicita.com';
+const title = 'CitaMedica — La nueva era de las citas médicas';
+const description = 'Reserva citas médicas en 3 clics. Experiencia fluida para pacientes, gestión potente para clínicas y médicos. Integrado con Cal.com, Google y Microsoft 365.';
+const image = '/og.png';
+---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={siteUrl} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content="citas médicas, reservas, clínica, médicos, cal.com, salud" />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={siteUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
+    <script type="application/ld+json">
+      {JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'CitaMedica',
+        applicationCategory: 'BusinessApplication',
+        description,
+        url: siteUrl,
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        publisher: { '@type': 'Organization', name: 'CitaMedica' }
+      })}
+    </script>
+
+    <link rel="preload" href="/hero-illustration.svg" as="image" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="container">
+      <nav class="nav">
+        <a class="brand" href="/">CitaMedica</a>
+        <div class="nav-actions">
+          <a class="link" href="/app">Entrar</a>
+          <a class="btn btn-primary" href="/app/auth/register/clinic">Comenzar</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy fade-in-up">
+            <h1>La nueva era de la gestión de citas médicas</h1>
+            <p class="subtitle">Reserva en 3 clics. Experiencia premium para pacientes y paneles claros para médicos y clínicas. Integrado con Cal.com, Google y Microsoft 365.</p>
+            <div class="cta">
+              <a class="btn btn-primary" href="/app">Reservar ahora</a>
+              <a class="btn btn-secondary" href="#features">Ver características</a>
+            </div>
+            <ul class="hero-bullets">
+              <li>Reservas rápidas y seguras</li>
+              <li>Agenda sincronizada en tiempo real</li>
+              <li>Notificaciones por email y SMS</li>
+            </ul>
+          </div>
+          <div class="hero-visual fade-in">
+            <img src="/hero-illustration.svg" width="640" height="480" alt="Calendario interactivo" loading="eager" decoding="async" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section id="features" class="section">
+        <div class="container">
+          <h2 class="section-title">Características destacadas</h2>
+          <div class="features-grid">
+            <article class="card">
+              <h3>Reserva en 3 clics</h3>
+              <p>Un flujo limpio e intuitivo para pacientes: clínica → médico → horario → confirmar.</p>
+            </article>
+            <article class="card">
+              <h3>Integración Cal.com</h3>
+              <p>Disponibilidad real, tipos de eventos y reservas con la robusta API v2 de Cal.com.</p>
+            </article>
+            <article class="card">
+              <h3>Sincronización de calendarios</h3>
+              <p>Google y Microsoft 365 para evitar conflictos y mantener todo al día.</p>
+            </article>
+            <article class="card">
+              <h3>Notificaciones automáticas</h3>
+              <p>Confirmaciones por email (SendGrid) y recordatorios SMS (Twilio) sin fricción.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Testimonials -->
+      <section class="section alt">
+        <div class="container">
+          <h2 class="section-title">Lo que dicen nuestros usuarios</h2>
+          <div class="testimonials">
+            <figure class="testimonial">
+              <blockquote>“Reservé en menos de un minuto. Recibí recordatorio y todo salió perfecto.”</blockquote>
+              <figcaption>Laura — Paciente</figcaption>
+            </figure>
+            <figure class="testimonial">
+              <blockquote>“Como clínica, ver todas las citas por médico y día nos cambió la operación.”</blockquote>
+              <figcaption>Clínica BuenaSalud</figcaption>
+            </figure>
+            <figure class="testimonial">
+              <blockquote>“Mi agenda siempre está sincronizada. Sin dobles reservas.”</blockquote>
+              <figcaption>Dr. Pérez</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="section">
+        <div class="container cta-final">
+          <h2>Empieza hoy con CitaMedica</h2>
+          <p>Implementación rápida, experiencia premium. ¡Listo para tu clínica!</p>
+          <a class="btn btn-primary" href="/app/auth/register/clinic">Crear clínica</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>© {new Date().getFullYear()} CitaMedica · <a href="/legal">Legal</a></p>
+      </div>
+    </footer>
+  </body>
 </html>

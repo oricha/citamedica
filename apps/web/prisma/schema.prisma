@@ -101,6 +101,26 @@ model PendingRegistration {
   @@map("pending_registrations")
 }
 
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_config")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  actorUserId  String
+  action       String
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
 enum UserRole {
   PATIENT
   DOCTOR
