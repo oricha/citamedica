@@ -1,0 +1,126 @@
+// Prisma schema for CitaMedica complementary data
+// This stores metadata that complements Cal.com data
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Test {
+  id   String @id @default(cuid())
+  name String
+}
+
+model Clinic {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  description  String?
+  logo         String?
+  calcomTeamId String   @unique
+  adminUserId  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  doctors Doctor[]
+  admin   User     @relation("ClinicAdmin", fields: [adminUserId], references: [id])
+
+  @@map("clinics")
+}
+
+model Doctor {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  specialty     String
+  bio           String?
+  avatar        String?
+  calcomUserId  String   @unique
+  clinicId      String?
+  isIndependent Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  clinic       Clinic?       @relation(fields: [clinicId], references: [id])
+  user         User          @relation("DoctorUser", fields: [calcomUserId], references: [calcomUserId])
+  appointments Appointment[]
+
+  @@map("doctors")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  password     String
+  role         UserRole
+  calcomUserId String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  clinicsAsAdmin Clinic[] @relation("ClinicAdmin")
+  doctorProfile  Doctor?  @relation("DoctorUser")
+
+  @@map("users")
+}
+
+model Appointment {
+  id              String            @id @default(cuid())
+  calcomBookingId String            @unique
+  doctorId        String
+  patientName     String
+  patientPhone    String
+  patientEmail    String?
+  startTime       DateTime
+  endTime         DateTime
+  status          AppointmentStatus
+  eventTypeId     String
+  createdAt       DateTime          @default(now())
+
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+
+  @@map("appointments")
+}
+
+model PendingRegistration {
+  id          String             @id @default(cuid())
+  type        RegistrationType
+  name        String
+  email       String
+  data        Json
+  submittedAt DateTime           @default(now())
+  approvedAt  DateTime?
+  rejectedAt  DateTime?
+  status      RegistrationStatus @default(PENDING)
+
+  @@map("pending_registrations")
+}
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  CLINIC_ADMIN
+  SYSTEM_ADMIN
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum RegistrationType {
+  CLINIC
+  DOCTOR
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

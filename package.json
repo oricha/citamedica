@@ -1,0 +1,20 @@
+{
+  "name": "citamedica",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "echo 'Use dev:landing or dev:web' && exit 0",
+    "dev:landing": "pnpm --filter @citamedica/landing dev",
+    "dev:web": "pnpm --filter @citamedica/web dev",
+    "build": "echo 'Use build:landing or build:web' && exit 0",
+    "build:landing": "pnpm --filter @citamedica/landing build",
+    "build:web": "pnpm --filter @citamedica/web build"
+  },
+  "dependencies": {
+    "typescript": "^5.9.2"
+  }
+}
