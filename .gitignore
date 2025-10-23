@@ -38,20 +38,6 @@ yarn-error.log*
 next-env.d.ts
 
 # Additional entries
-
-node_modules/
-.DS_Store
-.env
-.env.local
-.env*.local
-.vercel/
-.next/
-dist/
-out/
-coverage/
-*.log
 .agent/
 .idea/
 .vscode/
-app/web/.next/
-app/landing/.astro/
