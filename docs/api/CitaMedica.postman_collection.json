@@ -1,0 +1,878 @@
+{
+	"info": {
+		"_postman_id": "citamedica-api-collection",
+		"name": "CitaMedica API",
+		"description": "Complete API collection for CitaMedica - Medical Appointment Management Platform\n\nThis collection includes all REST endpoints for managing patients, doctors, appointments, and webhooks.\n\n## Authentication\n\nMost endpoints require JWT authentication. Use the `/auth/login` endpoint to obtain a token, then set it in the `{{jwt_token}}` variable.\n\n## Environment Variables\n\nCreate a Postman environment with these variables:\n- `base_url`: http://localhost:8080\n- `jwt_token`: (obtained from login)\n- `clinic_id`: 1\n- `doctor_id`: 1\n- `patient_id`: 1\n\n## Quick Start\n\n1. Import this collection into Postman\n2. Create an environment with the variables above\n3. Run the \"Health Check\" request to verify the API is running\n4. Use \"Login\" to get a JWT token\n5. Explore other endpoints\n\nVersion: 1.0.0\nLast Updated: 2025-10-27",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health & Monitoring",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check the health status of the application and its dependencies (database, disk space, etc.)"
+					},
+					"response": [
+						{
+							"name": "Health Check - UP",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/actuator/health",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"actuator",
+										"health"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"UP\",\n    \"components\": {\n        \"db\": {\n            \"status\": \"UP\",\n            \"details\": {\n                \"database\": \"PostgreSQL\",\n                \"validationQuery\": \"isValid()\"\n            }\n        },\n        \"diskSpace\": {\n            \"status\": \"UP\",\n            \"details\": {\n                \"total\": 500000000000,\n                \"free\": 250000000000,\n                \"threshold\": 10485760\n            }\n        },\n        \"ping\": {\n            \"status\": \"UP\"\n        }\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/metrics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"metrics"
+							]
+						},
+						"description": "Get list of available metrics"
+					},
+					"response": []
+				},
+				{
+					"name": "JVM Memory Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/metrics/jvm.memory.used",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"metrics",
+								"jvm.memory.used"
+							]
+						},
+						"description": "Get JVM memory usage metrics"
+					},
+					"response": []
+				},
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/prometheus",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"prometheus"
+							]
+						},
+						"description": "Get metrics in Prometheus format for monitoring"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for monitoring application health and metrics"
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"jwt_token\", jsonData.token);",
+									"    console.log(\"JWT token saved to environment\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@citamedica.com\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticate and obtain a JWT token. The token is automatically saved to the `jwt_token` environment variable."
+					},
+					"response": [
+						{
+							"name": "Login Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"admin@citamedica.com\",\n    \"password\": \"admin123\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/auth/login",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"type\": \"Bearer\",\n    \"expiresIn\": 86400000\n}"
+						}
+					]
+				}
+			],
+			"description": "Authentication endpoints for obtaining JWT tokens",
+			"auth": {
+				"type": "noauth"
+			}
+		},
+		{
+			"name": "Patients",
+			"item": [
+				{
+					"name": "Create Patient",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"patient_id\", jsonData.id);",
+									"    console.log(\"Patient ID saved: \" + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+34 600 000 000\",\n    \"dateOfBirth\": \"1990-01-15\",\n    \"insuranceProvider\": \"Sanitas\",\n    \"insuranceNumber\": \"SAN123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/patients",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"patients"
+							]
+						},
+						"description": "Create a new patient record. Requires authentication."
+					},
+					"response": [
+						{
+							"name": "Create Patient Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+34 600 000 000\",\n    \"dateOfBirth\": \"1990-01-15\",\n    \"insuranceProvider\": \"Sanitas\",\n    \"insuranceNumber\": \"SAN123456\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/patients",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"patients"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 1,\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+34 600 000 000\",\n    \"dateOfBirth\": \"1990-01-15\",\n    \"insuranceProvider\": \"Sanitas\",\n    \"insuranceNumber\": \"SAN123456\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Patient by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/patients/{{patient_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"patients",
+								"{{patient_id}}"
+							]
+						},
+						"description": "Get patient details by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing patient records"
+		},
+		{
+			"name": "Doctors",
+			"item": [
+				{
+					"name": "List Doctors by Clinic",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/doctors?clinicId={{clinic_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"doctors"
+							],
+							"query": [
+								{
+									"key": "clinicId",
+									"value": "{{clinic_id}}",
+									"description": "ID of the clinic"
+								}
+							]
+						},
+						"description": "Get all active doctors for a specific clinic"
+					},
+					"response": [
+						{
+							"name": "List Doctors Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/doctors?clinicId=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"doctors"
+									],
+									"query": [
+										{
+											"key": "clinicId",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"id\": 1,\n        \"firstName\": \"María\",\n        \"lastName\": \"García López\",\n        \"specialty\": \"Cardiología\",\n        \"email\": \"maria.garcia@clinicademo.com\",\n        \"phone\": \"+34 612 345 678\",\n        \"calUsername\": \"dr-maria-garcia\",\n        \"active\": true\n    },\n    {\n        \"id\": 2,\n        \"firstName\": \"Juan\",\n        \"lastName\": \"Martínez Ruiz\",\n        \"specialty\": \"Medicina General\",\n        \"email\": \"juan.martinez@clinicademo.com\",\n        \"phone\": \"+34 623 456 789\",\n        \"calUsername\": \"dr-juan-martinez\",\n        \"active\": true\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "Get Doctor by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/doctors/{{doctor_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"doctors",
+								"{{doctor_id}}"
+							]
+						},
+						"description": "Get doctor details by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing doctor information"
+		},
+		{
+			"name": "Appointments",
+			"item": [
+				{
+					"name": "List Appointments by Doctor and Date",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments?doctorId={{doctor_id}}&date=2025-10-27",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments"
+							],
+							"query": [
+								{
+									"key": "doctorId",
+									"value": "{{doctor_id}}",
+									"description": "ID of the doctor"
+								},
+								{
+									"key": "date",
+									"value": "2025-10-27",
+									"description": "Date in YYYY-MM-DD format"
+								}
+							]
+						},
+						"description": "Get all appointments for a specific doctor on a specific date, ordered by start time"
+					},
+					"response": [
+						{
+							"name": "List Appointments Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/appointments?doctorId=1&date=2025-10-27",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"appointments"
+									],
+									"query": [
+										{
+											"key": "doctorId",
+											"value": "1"
+										},
+										{
+											"key": "date",
+											"value": "2025-10-27"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"id\": 1,\n        \"calBookingId\": \"abc123\",\n        \"doctorId\": 1,\n        \"doctorName\": \"Dr. María García López\",\n        \"patientId\": 1,\n        \"patientName\": \"Ana Rodríguez Sánchez\",\n        \"appointmentType\": \"Consulta de Cardiología\",\n        \"startTime\": \"2025-10-27T09:00:00Z\",\n        \"endTime\": \"2025-10-27T09:30:00Z\",\n        \"status\": \"SCHEDULED\",\n        \"notes\": \"Primera consulta\"\n    },\n    {\n        \"id\": 2,\n        \"calBookingId\": \"def456\",\n        \"doctorId\": 1,\n        \"doctorName\": \"Dr. María García López\",\n        \"patientId\": 2,\n        \"patientName\": \"Carlos Fernández López\",\n        \"appointmentType\": \"Electrocardiograma\",\n        \"startTime\": \"2025-10-27T11:30:00Z\",\n        \"endTime\": \"2025-10-27T12:00:00Z\",\n        \"status\": \"SCHEDULED\",\n        \"notes\": \"Control rutinario\"\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "Create Appointment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    console.log(\"Appointment created with ID: \" + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"doctorId\": {{doctor_id}},\n    \"patientId\": {{patient_id}},\n    \"appointmentType\": \"Consulta General\",\n    \"startTime\": \"2025-10-28T10:00:00Z\",\n    \"endTime\": \"2025-10-28T10:30:00Z\",\n    \"notes\": \"Revisión anual\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments"
+							]
+						},
+						"description": "Create a new appointment manually (optional - appointments are usually created via Cal.com webhooks)"
+					},
+					"response": [
+						{
+							"name": "Create Appointment Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"doctorId\": 1,\n    \"patientId\": 1,\n    \"appointmentType\": \"Consulta General\",\n    \"startTime\": \"2025-10-28T10:00:00Z\",\n    \"endTime\": \"2025-10-28T10:30:00Z\",\n    \"notes\": \"Revisión anual\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/appointments",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"appointments"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 5,\n    \"calBookingId\": null,\n    \"doctorId\": 1,\n    \"doctorName\": \"Dr. María García López\",\n    \"patientId\": 1,\n    \"patientName\": \"Ana Rodríguez Sánchez\",\n    \"appointmentType\": \"Consulta General\",\n    \"startTime\": \"2025-10-28T10:00:00Z\",\n    \"endTime\": \"2025-10-28T10:30:00Z\",\n    \"status\": \"SCHEDULED\",\n    \"notes\": \"Revisión anual\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Appointment by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"1"
+							]
+						},
+						"description": "Get appointment details by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing appointments"
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "Cal.com Webhook - Booking Created",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Cal-Signature-256",
+								"value": "{{webhook_signature}}",
+								"description": "HMAC SHA256 signature of the payload"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"triggerEvent\": \"BOOKING_CREATED\",\n    \"createdAt\": \"2025-10-27T10:30:00.000Z\",\n    \"payload\": {\n        \"id\": 123,\n        \"uid\": \"abc123def456\",\n        \"title\": \"Consulta Médica\",\n        \"startTime\": \"2025-10-28T15:00:00.000Z\",\n        \"endTime\": \"2025-10-28T15:30:00.000Z\",\n        \"attendees\": [\n            {\n                \"email\": \"patient@example.com\",\n                \"name\": \"John Doe\",\n                \"timeZone\": \"Europe/Madrid\"\n            }\n        ],\n        \"organizer\": {\n            \"email\": \"doctor@clinic.com\",\n            \"name\": \"Dr. Smith\",\n            \"timeZone\": \"Europe/Madrid\"\n        },\n        \"metadata\": {\n            \"doctorId\": \"1\",\n            \"patientId\": \"1\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webhooks/cal",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webhooks",
+								"cal"
+							]
+						},
+						"description": "Webhook endpoint called by Cal.com when a booking is created. This endpoint is called automatically by Cal.com - do not call manually unless testing.\n\nThe signature must be a valid HMAC SHA256 hash of the payload using the webhook secret."
+					},
+					"response": [
+						{
+							"name": "Webhook Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Cal-Signature-256",
+										"value": "valid-signature-here"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"triggerEvent\": \"BOOKING_CREATED\",\n    \"payload\": {...}\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/webhooks/cal",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webhooks",
+										"cal"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Webhook processed successfully\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Cal.com Webhook - Booking Rescheduled",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Cal-Signature-256",
+								"value": "{{webhook_signature}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"triggerEvent\": \"BOOKING_RESCHEDULED\",\n    \"createdAt\": \"2025-10-27T11:00:00.000Z\",\n    \"payload\": {\n        \"id\": 123,\n        \"uid\": \"abc123def456\",\n        \"title\": \"Consulta Médica\",\n        \"startTime\": \"2025-10-29T16:00:00.000Z\",\n        \"endTime\": \"2025-10-29T16:30:00.000Z\",\n        \"attendees\": [\n            {\n                \"email\": \"patient@example.com\",\n                \"name\": \"John Doe\",\n                \"timeZone\": \"Europe/Madrid\"\n            }\n        ],\n        \"organizer\": {\n            \"email\": \"doctor@clinic.com\",\n            \"name\": \"Dr. Smith\",\n            \"timeZone\": \"Europe/Madrid\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webhooks/cal",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webhooks",
+								"cal"
+							]
+						},
+						"description": "Webhook for rescheduled bookings"
+					},
+					"response": []
+				},
+				{
+					"name": "Cal.com Webhook - Booking Cancelled",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Cal-Signature-256",
+								"value": "{{webhook_signature}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"triggerEvent\": \"BOOKING_CANCELLED\",\n    \"createdAt\": \"2025-10-27T12:00:00.000Z\",\n    \"payload\": {\n        \"id\": 123,\n        \"uid\": \"abc123def456\",\n        \"title\": \"Consulta Médica\",\n        \"cancellationReason\": \"Patient requested cancellation\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webhooks/cal",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webhooks",
+								"cal"
+							]
+						},
+						"description": "Webhook for cancelled bookings"
+					},
+					"response": []
+				}
+			],
+			"description": "Webhook endpoints for Cal.com integration. These are called automatically by Cal.com.",
+			"auth": {
+				"type": "noauth"
+			}
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "clinic_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "doctor_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "patient_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "webhook_signature",
+			"value": "",
+			"type": "string",
+			"description": "HMAC SHA256 signature for webhook validation"
+		}
+	]
+}
