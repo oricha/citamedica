@@ -1,58 +1,58 @@
 # CitaMedica
 
-CitaMedica es una plataforma SaaS para gestión de citas médicas que integra con Cal.com para scheduling y proporciona un backend robusto para operaciones clínicas.
+CitaMedica is a SaaS platform for medical appointment management that integrates with Cal.com for scheduling and provides a robust backend for clinical operations.
 
-## Arquitectura
+## Architecture
 
-Este proyecto está organizado como un monorepo con las siguientes aplicaciones:
+This project is organized as a monorepo with the following applications:
 
-- **apps/landing**: Landing page optimizada con Next.js 14 + Astro
-- **apps/backend**: API backend en Java 21 + Spring Boot 3
-- **infra**: Configuración de Docker Compose para desarrollo local
+- **apps/landing**: Landing page optimized with Next.js 14 + Astro
+- **apps/backend**: Backend API in Java 21 + Spring Boot 3
+- **infra**: Docker Compose configuration for local development
 
-### Stack Tecnológico
+### Technology Stack
 
 - **Frontend**: Next.js 14, Astro, Tailwind CSS, shadcn/ui
 - **Backend**: Java 21, Spring Boot 3, Spring Data JPA, PostgreSQL, Flyway
-- **Integraciones**: Cal.com self-hosted, Redis
-- **Infraestructura**: Docker, Docker Compose
+- **Integrations**: Cal.com self-hosted, Redis
+- **Infrastructure**: Docker, Docker Compose
 
-## Instalación y Desarrollo
+## Installation and Development
 
-### Prerrequisitos
+### Prerequisites
 
-- Docker y Docker Compose
-- Java 21 (para desarrollo local del backend)
-- Node.js 18+ y pnpm (para frontend)
+- Docker and Docker Compose
+- Java 21 (for local backend development)
+- Node.js 18+ and pnpm (for frontend)
 
-### Levantar el Entorno de Desarrollo
+### Setting Up the Development Environment
 
-1. Clona el repositorio:
+1. Clone the repository:
    ```bash
    git clone <repo-url>
    cd citamedica
    ```
 
-2. Inicia todos los servicios:
+2. Start all services:
    ```bash
    make dev
    ```
 
-3. Accede a las aplicaciones:
+3. Access the applications:
    - Landing: http://localhost:3001
    - Backend API: http://localhost:8080
    - Cal.com: http://localhost:3000
 
-### Comandos Disponibles
+### Available Commands
 
-- `make dev`: Levantar todos los servicios
-- `make down`: Detener todos los servicios
-- `make logs`: Ver logs en tiempo real
-- `make clean`: Limpiar volúmenes y detener servicios
-- `make seed`: Cargar datos de prueba
-- `make test`: Ejecutar tests
+- `make dev`: Start all services
+- `make down`: Stop all services
+- `make logs`: View real-time logs
+- `make clean`: Clean volumes and stop services
+- `make seed`: Load test data
+- `make test`: Run tests
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 citamedica/
@@ -62,27 +62,27 @@ citamedica/
 ├── infra/
 │   ├── docker/           # Dockerfiles
 │   ├── docker-compose.yml
-│   └── scripts/          # Scripts de setup y seed
+│   └── scripts/          # Setup and seed scripts
 ├── docs/
-│   ├── api/              # Documentación de API
-│   └── architecture/     # Diagramas de arquitectura
+│   ├── api/              # API documentation
+│   └── architecture/     # Architecture diagrams
 └── Makefile
 ```
 
 ## API Endpoints
 
-### Principales Endpoints
+### Main Endpoints
 
-- `POST /api/v1/patients` - Crear paciente
-- `GET /api/v1/doctors?clinic={id}` - Listar médicos de clínica
-- `GET /api/v1/appointments?doctorId={id}&date=YYYY-MM-DD` - Agenda del día
-- `POST /webhooks/cal` - Webhook de Cal.com
+- `POST /api/v1/patients` - Create patient
+- `GET /api/v1/doctors?clinic={id}` - List doctors of clinic
+- `GET /api/v1/appointments?doctorId={id}&date=YYYY-MM-DD` - Daily schedule
+- `POST /webhooks/cal` - Cal.com webhook
 
-Ver documentación completa en `/docs/api`.
+See complete documentation at `/docs/api`.
 
-## Variables de Entorno
+## Environment Variables
 
-Crea un archivo `.env` en la raíz con:
+Create a `.env` file in the root with:
 
 ```bash
 # Backend
@@ -101,13 +101,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8080
 NEXT_PUBLIC_CALCOM_URL=http://localhost:3000
 ```
 
-## Contribución
+## Contribution
 
-1. Crea una rama para tu feature: `git checkout -b feature/nueva-funcionalidad`
-2. Haz commit de tus cambios: `git commit -am 'Añadir nueva funcionalidad'`
-3. Push a la rama: `git push origin feature/nueva-funcionalidad`
-4. Abre un Pull Request
+1. Create a branch for your feature: `git checkout -b feature/new-feature`
+2. Commit your changes: `git commit -am 'Add new functionality'`
+3. Push to the branch: `git push origin feature/new-feature`
+4. Open a Pull Request
 
-## Licencia
+## License
 
-Este proyecto está bajo la licencia MIT.
+This project is under the MIT license.
