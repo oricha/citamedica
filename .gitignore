@@ -40,7 +40,7 @@ next-env.d.ts
 # Additional entries
 .agent/
 .idea/
-.vscode/
+.vscode/** 
 .kiro/
 
 # Java and Maven
@@ -62,3 +62,5 @@ gradle-app.setting
 docker-compose.override.yml
 .env
 .env.local
+/.vscode
+.vscode/settings.json

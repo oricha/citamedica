@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroMockup from "@/assets/hero-mockup.jpg";
 
 export function Hero() {
@@ -24,12 +25,16 @@ export function Hero() {
 
           {/* CTA Buttons */}
           <div className="mb-12 flex flex-col gap-4 sm:flex-row">
-            <Button size="lg" variant="cta" className="group">
-              Empieza tu prueba gratuita de 14 días
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <Button size="lg" variant="cta" className="group" asChild>
+              <Link to="/reservar">
+                Reservar una Demo
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
             </Button>
-            <Button size="lg" variant="outline">
-              Ver Demo en Vivo
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/precios">
+                Ver Precios
+              </Link>
             </Button>
           </div>
 
