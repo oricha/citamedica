@@ -1,4 +1,7 @@
-# Welcome to your Lovable project
+# Welcome to @citamedica/landing 
+
+- Landing de marketing para CitaMedica. Vite + React + shadcn-ui + Tailwind CSS setup
+- Requisitos: Node 18+, pnpm.
 
 ## Project info
 

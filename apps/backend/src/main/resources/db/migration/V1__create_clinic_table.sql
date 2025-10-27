@@ -1,0 +1,9 @@
+CREATE TABLE clinic (
+    id BIGSERIAL PRIMARY KEY,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    address TEXT,
+    phone VARCHAR(50),
+    cal_team_id VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

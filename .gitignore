@@ -41,3 +41,24 @@ next-env.d.ts
 .agent/
 .idea/
 .vscode/
+.kiro/
+
+# Java and Maven
+*.class
+*.jar
+*.war
+*.ear
+target/
+.mvn/
+mvnw
+mvnw.cmd
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# Docker
+docker-compose.override.yml
+.env
+.env.local

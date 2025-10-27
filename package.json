@@ -7,11 +7,13 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "echo 'Use dev:landing or dev:web' && exit 0",
+    "dev": "echo 'Use dev:landing, dev:backend, or dev:web' && exit 0",
     "dev:landing": "pnpm --filter @citamedica/landing dev",
+    "dev:backend": "pnpm --filter @citamedica/backend dev",
     "dev:web": "pnpm --filter @citamedica/web dev",
-    "build": "echo 'Use build:landing or build:web' && exit 0",
+    "build": "echo 'Use build:landing, build:backend, or build:web' && exit 0",
     "build:landing": "pnpm --filter @citamedica/landing build",
+    "build:backend": "pnpm --filter @citamedica/backend build",
     "build:web": "pnpm --filter @citamedica/web build"
   },
   "dependencies": {
