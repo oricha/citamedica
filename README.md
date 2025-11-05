@@ -64,9 +64,9 @@ CitaMedica follows a **Hexagonal Architecture** (Ports and Adapters) pattern for
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    External Services                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  PostgreSQL  │  │   Cal.com    │  │    Redis     │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│  ┌──────────────┐  ┌──────────────┐                        │
+│  │  PostgreSQL  │  │   Cal.com    │                        │
+│  └──────────────┘  └──────────────┘                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -102,7 +102,6 @@ CitaMedica follows a **Hexagonal Architecture** (Ports and Adapters) pattern for
 ### Infrastructure
 - **Docker & Docker Compose**: Containerization and orchestration
 - **Cal.com**: Self-hosted scheduling platform
-- **Redis**: Caching and session management
 - **Nginx**: Reverse proxy and static file serving
 
 ### Testing
@@ -194,8 +193,6 @@ docker-compose ps
 You should see all services in "Up" state:
 - `postgres-clinic` - Main database
 - `postgres-cal` - Cal.com database
-- `redis` - Cache for backend
-- `redis-cal` - Cache for Cal.com
 - `backend-api` - Spring Boot API
 - `landing` - React landing page
 - `calcom` - Cal.com scheduling platform
@@ -245,9 +242,6 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 ```bash
 # Cal.com Database
 DATABASE_URL=postgresql://calcom:calcom123@postgres-cal:5432/calcom
-
-# Cal.com Redis
-REDIS_URL=redis://redis-cal:6379
 
 # NextAuth Secret (⚠️ Must be at least 32 characters!)
 NEXTAUTH_SECRET=change-this-to-a-random-string-minimum-32-characters

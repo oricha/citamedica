@@ -19,20 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis for caching
-  redis:
-    image: redis:7-alpine
-    container_name: citamedica-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - citamedica-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Backend API (Spring Boot)
   backend-api:
     build:
@@ -47,15 +33,11 @@ services:
       CALCOM_API_URL: http://calcom:3000/api/v2
       CALCOM_WEBHOOK_SECRET: ${CALCOM_WEBHOOK_SECRET:-dev-webhook-secret-change-in-production}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
       NOTIFICATIONS_ENABLED: ${NOTIFICATIONS_ENABLED:-false}
     ports:
       - "8080:8080"
     depends_on:
       postgres-clinic:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - citamedica-network
@@ -105,20 +87,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis for Cal.com
-  redis-cal:
-    image: redis:7-alpine
-    container_name: calcom-redis
-    ports:
-      - "6380:6379"
-    networks:
-      - citamedica-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Cal.com self-hosted
   calcom:
     image: calcom/cal.com:latest
@@ -126,7 +94,6 @@ services:
     container_name: citamedica-calcom
     environment:
       DATABASE_URL: postgresql://calcom:calcom123@postgres-cal:5432/calcom
-      REDIS_URL: redis://redis-cal:6379
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-this-to-a-random-string-in-production}
       CALENDSO_ENCRYPTION_KEY: ${CALENDSO_ENCRYPTION_KEY:-change-this-to-a-32-char-random-string}
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
@@ -137,8 +104,6 @@ services:
       - "3000:3000"
     depends_on:
       postgres-cal:
-        condition: service_healthy
-      redis-cal:
         condition: service_healthy
     networks:
       - citamedica-network
