@@ -21,7 +21,7 @@ public class CalcomClient {
 
     public CalcomClient(RestTemplate restTemplate,
                         @Value("${calcom.api.url}") String calcomApiUrl,
-                        @Value("${calcom.api.key}") String calcomApiKey) {
+                        @Value("${calcom.api.key:#{null}}") String calcomApiKey) {
         this.restTemplate = restTemplate;
         this.calcomApiUrl = calcomApiUrl;
         this.calcomApiKey = calcomApiKey;
