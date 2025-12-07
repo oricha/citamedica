@@ -1,5 +1,5 @@
 # Multi-stage build for Spring Boot application
-FROM --platform=linux/amd64 gradle:8.5-jdk21-alpine AS builder
+FROM gradle:8-jdk21-alpine AS builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY src ./src
 RUN gradle bootJar --no-daemon
 
 # Runtime stage
-FROM --platform=linux/amd64 eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 

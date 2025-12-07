@@ -1,5 +1,5 @@
 # Multi-stage build for React/Vite application
-FROM --platform=linux/amd64 node:20-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # Runtime stage with nginx
-FROM --platform=linux/amd64 nginx:alpine
+FROM nginx:alpine
 
 # Copy built files to nginx
 COPY --from=builder /app/dist /usr/share/nginx/html

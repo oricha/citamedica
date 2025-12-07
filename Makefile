@@ -68,7 +68,9 @@ clean: ## Limpiar volúmenes y detener servicios
 
 build: ## Construir imágenes Docker
 	@echo "🔨 Construyendo imágenes Docker..."
-	docker-compose build --no-cache
+	@echo "⏳ Deshabilitando proxy para la construcción..."
+	@echo "🔨 Construyendo imágenes..."
+	@HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* no_proxy=* DOCKER_BUILDKIT=1 docker-compose build --no-cache || (echo "❌ Error al construir. Intentando sin --no-cache..." && HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* no_proxy=* docker-compose build)
 	@echo "✅ Imágenes construidas"
 
 rebuild: ## Reconstruir y reiniciar servicios
@@ -85,7 +87,34 @@ restart: ## Reiniciar todos los servicios
 
 status: ## Ver estado de los servicios
 	@echo "📊 Estado de los servicios:"
-	@docker-compose ps
+	@echo ""
+	@SERVICES=$$(docker-compose ps 2>/dev/null | tail -n +2 | grep -v "^$$" | wc -l | tr -d ' '); \
+	if [ "$$SERVICES" -gt "0" ]; then \
+		docker-compose ps; \
+		echo ""; \
+		echo "📈 Resumen:"; \
+		docker-compose ps --format "table {{.Service}}\t{{.Status}}\t{{.Ports}}" | tail -n +2 | while read line; do \
+			if echo "$$line" | grep -q "Up"; then \
+				echo "  ✅ $$line"; \
+			elif echo "$$line" | grep -q "Exit"; then \
+				echo "  ❌ $$line"; \
+			else \
+				echo "  ⚠️  $$line"; \
+			fi; \
+		done; \
+	else \
+		echo "⚠️  No hay servicios corriendo"; \
+		echo ""; \
+		echo "💡 Para iniciar los servicios, ejecuta: make dev"; \
+	fi
+	@echo ""
+	@echo "📦 Imágenes Docker disponibles:"
+	@docker images --format "  {{.Repository}}:{{.Tag}}\t({{.Size}})" | grep -E "(citamedica|calcom)" | head -5 || echo "  No se encontraron imágenes de CitaMedica"
+	@echo ""
+	@echo "💡 Comandos útiles:"
+	@echo "  make dev     - Iniciar todos los servicios"
+	@echo "  make logs    - Ver logs de todos los servicios"
+	@echo "  make health  - Verificar salud de los servicios"
 
 health: ## Verificar salud de los servicios
 	@echo "💚 Verificando salud de los servicios..."
