@@ -65,3 +65,4 @@ docker-compose.override.yml
 /.vscode
 .vscode/settings.json
 DOCKER_BUILD.md
+redis.md
