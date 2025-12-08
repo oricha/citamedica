@@ -66,3 +66,4 @@ docker-compose.override.yml
 .vscode/settings.json
 DOCKER_BUILD.md
 redis.md
+WARP.md
