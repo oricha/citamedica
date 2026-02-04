@@ -67,3 +67,15 @@ docker-compose.override.yml
 DOCKER_BUILD.md
 redis.md
 WARP.md
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.tfvars

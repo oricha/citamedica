@@ -1,0 +1,83 @@
+services:
+  postgres-clinic:
+    image: postgres:16-alpine
+    container_name: citamedica-postgres
+    environment:
+      POSTGRES_DB: citamedica
+      POSTGRES_USER: citamedica
+      POSTGRES_PASSWORD: ${postgres_clinic_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres-clinic:/var/lib/postgresql/data
+    networks:
+      - citamedica-network
+
+  backend-api:
+    image: ${backend_image}
+    container_name: citamedica-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-clinic:5432/citamedica
+      SPRING_DATASOURCE_USERNAME: citamedica
+      SPRING_DATASOURCE_PASSWORD: ${postgres_clinic_pass}
+      CALCOM_API_URL: ${calcom_api_url}
+      CALCOM_API_KEY: ${calcom_api_key}
+      CALCOM_WEBHOOK_SECRET: ${calcom_webhook_secret}
+      JWT_SECRET: ${jwt_secret}
+      NOTIFICATIONS_ENABLED: ${notifications_enabled}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-clinic
+    networks:
+      - citamedica-network
+
+  landing:
+    image: ${landing_image}
+    container_name: citamedica-landing
+    environment:
+      NEXT_PUBLIC_API_URL: ${app_public_url}
+      NEXT_PUBLIC_CALCOM_URL: ${calcom_public_url}
+    ports:
+      - "3001:3001"
+    networks:
+      - citamedica-network
+
+  postgres-cal:
+    image: postgres:16-alpine
+    container_name: calcom-postgres
+    environment:
+      POSTGRES_DB: calcom
+      POSTGRES_USER: calcom
+      POSTGRES_PASSWORD: ${postgres_cal_pass}
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./data/postgres-cal:/var/lib/postgresql/data
+    networks:
+      - citamedica-network
+
+  calcom:
+    image: ${calcom_image}
+    container_name: citamedica-calcom
+    environment:
+      DATABASE_URL: postgresql://calcom:${postgres_cal_pass}@postgres-cal:5432/calcom
+      DATABASE_DIRECT_URL: postgresql://calcom:${postgres_cal_pass}@postgres-cal:5432/calcom
+      NEXTAUTH_SECRET: ${nextauth_secret}
+      CALENDSO_ENCRYPTION_KEY: ${calendso_encryption_key}
+      NEXT_PUBLIC_WEBAPP_URL: ${calcom_public_url}
+      NEXT_PUBLIC_API_V2_URL: ${calcom_public_url}/api/v2
+      WEBHOOK_SECRET: ${calcom_webhook_secret}
+      SKIP_DB_MIGRATION: "false"
+      SKIP_ENV_VALIDATION: "true"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres-cal
+    networks:
+      - citamedica-network
+
+networks:
+  citamedica-network:
+    driver: bridge

@@ -1,0 +1,8 @@
+postgres_clinic_password = "citamedica123"
+postgres_cal_password    = "calcom123"
+calcom_api_key           = ""
+calcom_webhook_secret    = "dev-webhook-secret-change-in-production"
+jwt_secret               = "dev-secret-key-change-in-production"
+notifications_enabled    = "false"
+nextauth_secret          = "change-this-to-a-random-string-in-production"
+calendso_encryption_key  = "change-this-to-a-32-char-random-string"
