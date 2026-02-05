@@ -68,8 +68,6 @@ clean: ## Limpiar volúmenes y detener servicios
 
 build: ## Construir imágenes Docker
 	@echo "🔨 Construyendo imágenes Docker..."
-	@echo "⏳ Deshabilitando proxy para la construcción..."
-	@echo "🔨 Construyendo imágenes..."
 	@HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* no_proxy=* DOCKER_BUILDKIT=1 docker-compose build --no-cache || (echo "❌ Error al construir. Intentando sin --no-cache..." && HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* no_proxy=* docker-compose build)
 	@echo "✅ Imágenes construidas"
 
