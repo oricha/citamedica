@@ -39,9 +39,12 @@ next-env.d.ts
 
 # Additional entries
 .agent/
+.agents/
+.claude/
 .idea/
 .vscode/** 
 .kiro/
+openspec/**
 
 # Java and Maven
 *.class
@@ -67,6 +70,7 @@ docker-compose.override.yml
 DOCKER_BUILD.md
 redis.md
 WARP.md
+.metals/
 
 # Terraform
 .terraform/

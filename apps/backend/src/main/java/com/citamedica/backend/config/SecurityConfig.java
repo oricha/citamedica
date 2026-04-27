@@ -52,14 +52,19 @@ public class SecurityConfig {
                         // Patient endpoints - require STAFF, DOCTOR, or ADMIN roles
                         .requestMatchers(HttpMethod.POST, "/api/v1/patients").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/patients").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/patients/*").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/patients/*").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         
                         // Doctor endpoints - require CLINIC_MANAGER or ADMIN roles
                         .requestMatchers(HttpMethod.GET, "/api/v1/doctors").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF")
                         .requestMatchers(HttpMethod.POST, "/api/v1/doctors").hasAnyRole("CLINIC_MANAGER", "ADMIN")
                         
                         // Appointment endpoints - authenticated users
                         .requestMatchers(HttpMethod.GET, "/api/v1/appointments").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/appointments").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/appointments/*").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/appointments/*").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         
                         // All other endpoints require authentication
                         .anyRequest().authenticated()

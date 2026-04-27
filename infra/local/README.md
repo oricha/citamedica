@@ -11,6 +11,8 @@ terraform init
 terraform apply
 ```
 
+Este módulo levanta **Postgres clínica y backend en Docker**. Para desarrollo con **Postgres en el host**, usa el `docker-compose.yml` de la raíz del repo con `make dev` (sin perfil `docker-db`) y `make backend-local`.
+
 ## Requisitos
 
 - Docker corriendo localmente.

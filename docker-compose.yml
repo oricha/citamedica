@@ -1,6 +1,8 @@
 services:
-  # PostgreSQL for CitaMedica Backend
+  # PostgreSQL for CitaMedica Backend (optional: use profile docker-db, or Postgres nativo en DEV)
   postgres-clinic:
+    profiles:
+      - docker-db
     image: postgres:16-alpine
     container_name: citamedica-postgres
     environment:
@@ -19,8 +21,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend API (Spring Boot)
+  # Backend API (Spring Boot) — solo con perfil docker-db; en DEV local usar make backend-local
   backend-api:
+    profiles:
+      - docker-db
     build:
       context: ./apps/backend
       dockerfile: Dockerfile

@@ -1,4 +1,11 @@
-.PHONY: help dev down logs clean seed test build status health restart backend-logs landing-logs calcom-logs db-logs
+.PHONY: help dev dev-docker backend-local down logs clean seed test build status health restart \
+        backend-logs landing-logs calcom-logs db-logs db-logs-clinic rebuild rebuild-docker \
+        test-backend test-frontend db-shell db-shell-local db-migrate db-reset \
+        install format lint
+
+COMPOSE ?= docker-compose
+# Incluye servicios del perfil docker-db al hacer down/clean para detener backend y postgres-clinic si estaban activos
+COMPOSE_ALL := $(COMPOSE) --profile docker-db
 
 # Default target
 .DEFAULT_GOAL := help
@@ -6,27 +13,53 @@
 help: ## Show this help message
 	@echo "CitaMedica - Comandos disponibles:"
 	@echo ""
-	@echo "  make dev          - Iniciar todos los servicios"
+	@echo "  make dev          - Cal.com + landing + Postgres Cal (DEV: Postgres clínica en localhost)"
+	@echo "  make dev-docker   - Stack completo en Docker (postgres-clinic + backend-api + resto)"
+	@echo "  make backend-local - Backend Spring con Gradle (.env → Postgres local :5432)"
 	@echo "  make down         - Detener todos los servicios"
 	@echo "  make logs         - Ver logs en tiempo real de todos los servicios"
 	@echo "  make clean        - Limpiar volúmenes y detener servicios"
-	@echo "  make seed         - Cargar datos de prueba"
+	@echo "  make seed         - Cargar datos de prueba (reinicia backend Docker o indicaciones para local)"
 	@echo "  make test         - Ejecutar tests"
 	@echo "  make build        - Construir imágenes Docker"
 	@echo "  make status       - Ver estado de los servicios"
 	@echo "  make health       - Verificar salud de los servicios"
-	@echo "  make restart      - Reiniciar todos los servicios"
+	@echo "  make restart      - Reiniciar contenedores en ejecución"
+	@echo ""
+	@echo "Base de datos:"
+	@echo "  make db-shell        - psql a postgres-clinic (requiere make dev-docker)"
+	@echo "  make db-shell-local  - psql a Postgres local (usa .env)"
+	@echo "  make db-migrate      - Flyway desde Gradle (usa .env / valores por defecto)"
+	@echo "  make db-logs         - Logs de postgres-cal (Cal.com)"
+	@echo "  make db-logs-clinic  - Logs de postgres-clinic (requiere dev-docker)"
 	@echo ""
 	@echo "Logs específicos:"
-	@echo "  make backend-logs - Ver logs del backend"
+	@echo "  make backend-logs - Ver logs del backend (requiere make dev-docker)"
 	@echo "  make landing-logs - Ver logs del landing"
 	@echo "  make calcom-logs  - Ver logs de Cal.com"
-	@echo "  make db-logs      - Ver logs de la base de datos"
 	@echo ""
 
-dev: ## Iniciar todos los servicios
-	@echo "🚀 Iniciando servicios..."
-	docker-compose up -d
+dev: ## Cal.com + landing + BD Cal (Postgres clínica en el host para DEV)
+	@echo "🚀 Iniciando servicios (sin postgres-clinic ni backend en Docker)..."
+	$(COMPOSE) up -d
+	@echo ""
+	@echo "⏳ Esperando a que los servicios estén listos..."
+	@sleep 15
+	@echo ""
+	@echo "✅ Servicios Docker disponibles:"
+	@echo "  📄 Landing:  http://localhost:3001"
+	@echo "  📅 Cal.com:  http://localhost:3000"
+	@echo ""
+	@echo "🔧 Backend NO está en Docker. Con Postgres local en :5432:"
+	@echo "     make backend-local"
+	@echo ""
+	@echo "     (Stack todo en Docker: make dev-docker)"
+	@echo ""
+	@echo "💡 Usa 'make logs' para ver los logs en tiempo real"
+
+dev-docker: ## Stack completo incluyendo postgres-clinic y backend-api en Docker
+	@echo "🚀 Iniciando todos los servicios (perfil docker-db)..."
+	$(COMPOSE) --profile docker-db up -d
 	@echo ""
 	@echo "⏳ Esperando a que los servicios estén listos..."
 	@sleep 15
@@ -36,62 +69,74 @@ dev: ## Iniciar todos los servicios
 	@echo "  🔧 Backend:  http://localhost:8080"
 	@echo "  📅 Cal.com:  http://localhost:3000"
 	@echo "  💚 Health:   http://localhost:8080/actuator/health"
-	@echo "  📊 Metrics:  http://localhost:8080/actuator/metrics"
 	@echo ""
-	@echo "💡 Usa 'make logs' para ver los logs en tiempo real"
-	@echo "💡 Usa 'make health' para verificar el estado de los servicios"
+
+backend-local: ## Ejecutar backend con Gradle (carga .env si existe)
+	@echo "🔧 Arrancando backend con Postgres local (según .env)..."
+	@set -a; [ -f .env ] && . ./.env; set +a; \
+	cd apps/backend && ./gradlew bootRun
 
 down: ## Detener todos los servicios
 	@echo "🛑 Deteniendo servicios..."
-	docker-compose down
+	$(COMPOSE_ALL) down
 	@echo "✅ Servicios detenidos"
 
 logs: ## Ver logs en tiempo real
-	docker-compose logs -f
+	$(COMPOSE_ALL) logs -f
 
-backend-logs: ## Ver logs del backend
-	docker-compose logs -f backend-api
+backend-logs: ## Ver logs del backend en Docker
+	$(COMPOSE) --profile docker-db logs -f backend-api
 
 landing-logs: ## Ver logs del landing
-	docker-compose logs -f landing
+	$(COMPOSE) logs -f landing
 
 calcom-logs: ## Ver logs de Cal.com
-	docker-compose logs -f calcom
+	$(COMPOSE) logs -f calcom
 
-db-logs: ## Ver logs de la base de datos
-	docker-compose logs -f postgres-clinic
+db-logs: ## Ver logs de postgres-cal (BD de Cal.com)
+	$(COMPOSE) logs -f postgres-cal
+
+db-logs-clinic: ## Ver logs de postgres-clinic (requiere perfil docker-db)
+	$(COMPOSE) --profile docker-db logs -f postgres-clinic
 
 clean: ## Limpiar volúmenes y detener servicios
 	@echo "🧹 Limpiando volúmenes y deteniendo servicios..."
-	docker-compose down -v
+	$(COMPOSE_ALL) down -v
 	@echo "✅ Limpieza completada"
 
 build: ## Construir imágenes Docker
 	@echo "🔨 Construyendo imágenes Docker..."
-	@HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* no_proxy=* DOCKER_BUILDKIT=1 docker-compose build --no-cache || (echo "❌ Error al construir. Intentando sin --no-cache..." && HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* no_proxy=* docker-compose build)
+	@HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* no_proxy=* DOCKER_BUILDKIT=1 $(COMPOSE) build --no-cache || (echo "❌ Error al construir. Intentando sin --no-cache..." && HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* no_proxy=* $(COMPOSE) build)
 	@echo "✅ Imágenes construidas"
 
-rebuild: ## Reconstruir y reiniciar servicios
+rebuild: ## Reconstruir servicios por defecto (sin backend Docker)
 	@echo "🔄 Reconstruyendo servicios..."
-	docker-compose down
-	docker-compose build --no-cache
-	docker-compose up -d
+	$(COMPOSE) down
+	$(COMPOSE) build --no-cache
+	$(COMPOSE) up -d
 	@echo "✅ Servicios reconstruidos y reiniciados"
 
-restart: ## Reiniciar todos los servicios
+rebuild-docker: ## Reconstruir stack completo con perfil docker-db
+	@echo "🔄 Reconstruyendo stack Docker completo..."
+	$(COMPOSE) --profile docker-db down
+	$(COMPOSE) build --no-cache
+	$(COMPOSE) --profile docker-db up -d
+	@echo "✅ Stack con docker-db reconstruido"
+
+restart: ## Reiniciar contenedores en ejecución
 	@echo "🔄 Reiniciando servicios..."
-	docker-compose restart
+	$(COMPOSE_ALL) restart
 	@echo "✅ Servicios reiniciados"
 
 status: ## Ver estado de los servicios
 	@echo "📊 Estado de los servicios:"
 	@echo ""
-	@SERVICES=$$(docker-compose ps 2>/dev/null | tail -n +2 | grep -v "^$$" | wc -l | tr -d ' '); \
+	@SERVICES=$$($(COMPOSE_ALL) ps 2>/dev/null | tail -n +2 | grep -v "^$$" | wc -l | tr -d ' '); \
 	if [ "$$SERVICES" -gt "0" ]; then \
-		docker-compose ps; \
+		$(COMPOSE_ALL) ps; \
 		echo ""; \
 		echo "📈 Resumen:"; \
-		docker-compose ps --format "table {{.Service}}\t{{.Status}}\t{{.Ports}}" | tail -n +2 | while read line; do \
+		$(COMPOSE_ALL) ps --format "table {{.Service}}\t{{.Status}}\t{{.Ports}}" | tail -n +2 | while read line; do \
 			if echo "$$line" | grep -q "Up"; then \
 				echo "  ✅ $$line"; \
 			elif echo "$$line" | grep -q "Exit"; then \
@@ -103,44 +148,42 @@ status: ## Ver estado de los servicios
 	else \
 		echo "⚠️  No hay servicios corriendo"; \
 		echo ""; \
-		echo "💡 Para iniciar los servicios, ejecuta: make dev"; \
+		echo "💡 Para iniciar: make dev (o make dev-docker)"; \
 	fi
 	@echo ""
 	@echo "📦 Imágenes Docker disponibles:"
 	@docker images --format "  {{.Repository}}:{{.Tag}}\t({{.Size}})" | grep -E "(citamedica|calcom)" | head -5 || echo "  No se encontraron imágenes de CitaMedica"
 	@echo ""
 	@echo "💡 Comandos útiles:"
-	@echo "  make dev     - Iniciar todos los servicios"
-	@echo "  make logs    - Ver logs de todos los servicios"
-	@echo "  make health  - Verificar salud de los servicios"
+	@echo "  make dev     - Solo Cal.com + landing (+ Postgres local para la API)"
+	@echo "  make dev-docker - Todo en Docker"
+	@echo "  make logs    - Ver logs"
 
 health: ## Verificar salud de los servicios
 	@echo "💚 Verificando salud de los servicios..."
 	@echo ""
-	@echo "Backend Health:"
-	@curl -s http://localhost:8080/actuator/health | jq '.' || echo "❌ Backend no disponible"
+	@echo "Backend (local o Docker):"
+	@curl -s http://localhost:8080/actuator/health | jq '.' || echo "❌ Backend no disponible en :8080"
 	@echo ""
 	@echo "Landing Health:"
 	@curl -s http://localhost:3001/health || echo "❌ Landing no disponible"
 	@echo ""
 
-seed: ## Cargar datos de prueba
-	@echo "🌱 Cargando datos de prueba..."
-	@echo "⏳ Reiniciando backend para ejecutar seed..."
-	docker-compose restart backend-api
+seed: ## Cargar datos de prueba (SeedDataService al arrancar)
+	@echo "🌱 Datos de prueba (SeedDataService)..."
+	@if $(COMPOSE) --profile docker-db ps -q backend-api 2>/dev/null | grep -q .; then \
+		echo "Reiniciando backend en Docker..."; \
+		$(COMPOSE) --profile docker-db restart backend-api; \
+		echo "⏳ Esperando al backend..."; \
+		sleep 10; \
+		echo "✅ Reinicio enviado"; \
+	else \
+		echo "No hay contenedor backend-api."; \
+		echo "Si usas make backend-local, detén el proceso (Ctrl+C) y vuelve a ejecutar make backend-local."; \
+		echo "(El seed solo corre al arrancar si la BD está vacía; si ya hay datos, no se vuelve a cargar.)"; \
+	fi
 	@echo ""
-	@echo "⏳ Esperando a que el backend cargue los datos..."
-	@sleep 10
-	@echo ""
-	@echo "✅ Datos de prueba cargados"
-	@echo ""
-	@echo "📊 Datos creados:"
-	@echo "  • 1 clínica (Clínica Demo CitaMedica)"
-	@echo "  • 2 médicos (Cardiología y Medicina General)"
-	@echo "  • 3 pacientes"
-	@echo "  • 4 citas de ejemplo"
-	@echo ""
-	@echo "💡 Verifica los logs con: make backend-logs"
+	@echo "💡 Con backend Docker: make backend-logs"
 
 test: ## Ejecutar tests
 	@echo "🧪 Ejecutando tests del backend..."
@@ -157,23 +200,41 @@ test-frontend: ## Ejecutar solo tests del frontend
 	@echo "🧪 Ejecutando tests del frontend..."
 	cd apps/landing && npm test
 
-db-shell: ## Conectar a la base de datos PostgreSQL
-	docker-compose exec postgres-clinic psql -U citamedica -d citamedica
+db-shell: ## psql a postgres-clinic en Docker
+	$(COMPOSE) --profile docker-db exec postgres-clinic psql -U citamedica -d citamedica
 
-db-migrate: ## Ejecutar migraciones de base de datos
-	@echo "🔄 Ejecutando migraciones..."
-	docker-compose exec backend-api ./gradlew flywayMigrate
+db-shell-local: ## psql (host/puerto/BD derivados de SPRING_DATASOURCE_URL en .env)
+	@set -a; [ -f .env ] && . ./.env; set +a; \
+	u="$${SPRING_DATASOURCE_USERNAME:-citamedica}"; \
+	p="$${SPRING_DATASOURCE_PASSWORD:-citamedica123}"; \
+	url="$${SPRING_DATASOURCE_URL:-jdbc:postgresql://localhost:5432/citamedica}"; \
+	rest=$${url#jdbc:postgresql://}; \
+	hostport=$${rest%%/*}; \
+	db=$${rest#*/}; db=$${db%%\?*}; \
+	host=$${hostport%%:*}; \
+	port=$${hostport##*:}; \
+	if [ "$$host" = "$$port" ] || [ -z "$$port" ]; then port=5432; fi; \
+	PGPASSWORD="$$p" psql -h "$$host" -p "$$port" -U "$$u" -d "$$db"
 
-db-reset: ## Resetear base de datos (⚠️ CUIDADO: Borra todos los datos)
-	@echo "⚠️  ADVERTENCIA: Esto borrará todos los datos de la base de datos"
-	@read -p "¿Estás seguro? [y/N] " -n 1 -r; \
+db-migrate: ## Ejecutar migraciones Flyway con Gradle (lee SPRING_DATASOURCE_* del entorno / .env)
+	@echo "🔄 Ejecutando migraciones Flyway..."
+	@set -a; [ -f .env ] && . ./.env; set +a; \
+	cd apps/backend && ./gradlew flywayMigrate
+
+db-reset: ## Borrar datos de postgres-clinic + recrear (no afecta volúmenes de Cal.com)
+	@echo "⚠️  Se eliminará el volumen de postgres-clinic y se recrearán clínica + backend Docker."
+	@read -p "¿Continuar? [y/N] " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		docker-compose down -v; \
-		docker-compose up -d postgres-clinic; \
+		$(COMPOSE) --profile docker-db stop postgres-clinic backend-api 2>/dev/null; \
+		$(COMPOSE) --profile docker-db rm -f postgres-clinic backend-api 2>/dev/null; \
+		for v in $$(docker volume ls -q | grep -E '(^|_)postgres-clinic-data$$' || true); do \
+			echo "Eliminando volumen $$v..."; docker volume rm $$v 2>/dev/null || true; \
+		done; \
+		$(COMPOSE) --profile docker-db up -d postgres-clinic; \
 		sleep 5; \
-		docker-compose up -d backend-api; \
-		echo "✅ Base de datos reseteada"; \
+		$(COMPOSE) --profile docker-db up -d backend-api; \
+		echo "✅ postgres-clinic y backend-api recreados."; \
 	else \
 		echo "❌ Operación cancelada"; \
 	fi
@@ -199,8 +260,3 @@ lint: ## Ejecutar linters
 	@echo ""
 	@echo "🔍 Ejecutando linters del frontend..."
 	cd apps/landing && npm run lint || echo "⚠️  ESLint no configurado"
-
-.PHONY: help dev down logs clean seed test build status health restart \
-        backend-logs landing-logs calcom-logs db-logs rebuild \
-        test-backend test-frontend db-shell db-migrate db-reset \
-        install format lint

@@ -11,9 +11,9 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:postgresql://localhost:5432/citamedica
-    username: citamedica
-    password: citamedica123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/citamedica}
+    username: ${SPRING_DATASOURCE_USERNAME:citamedica}
+    password: ${SPRING_DATASOURCE_PASSWORD:citamedica123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

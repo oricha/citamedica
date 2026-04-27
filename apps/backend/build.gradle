@@ -1,8 +1,22 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.flywaydb:flyway-gradle-plugin:10.15.0'
+        classpath 'org.flywaydb:flyway-database-postgresql:10.15.0'
+        classpath 'org.flywaydb:flyway-core:10.15.0'
+        classpath 'org.postgresql:postgresql:42.7.8'
+    }
+}
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.7'
     id 'io.spring.dependency-management' version '1.1.4'
 }
+
+apply plugin: 'org.flywaydb.flyway'
 
 group = 'com.citamedica'
 version = '0.0.1-SNAPSHOT'
@@ -64,4 +78,11 @@ tasks.named('test') {
 
 bootJar {
     mainClass.set('com.citamedica.backend.BackendApplication')
+}
+
+flyway {
+    url = System.getenv('SPRING_DATASOURCE_URL') ?: 'jdbc:postgresql://localhost:5432/citamedica'
+    user = System.getenv('SPRING_DATASOURCE_USERNAME') ?: 'citamedica'
+    password = System.getenv('SPRING_DATASOURCE_PASSWORD') ?: 'citamedica123'
+    locations = ['classpath:db/migration']
 }

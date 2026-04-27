@@ -5,7 +5,7 @@ CREATE TABLE audit_log (
     entity VARCHAR(255) NOT NULL,
     entity_id BIGINT NOT NULL,
     at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB
+    metadata TEXT
 );
 
 CREATE INDEX idx_entity ON audit_log(entity, entity_id);
