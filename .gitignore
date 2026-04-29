@@ -39,9 +39,12 @@ next-env.d.ts
 
 # Additional entries
 .agent/
+.agents/
+.claude/
 .idea/
 .vscode/** 
 .kiro/
+openspec/**
 
 # Java and Maven
 *.class
@@ -64,3 +67,19 @@ docker-compose.override.yml
 .env.local
 /.vscode
 .vscode/settings.json
+DOCKER_BUILD.md
+redis.md
+WARP.md
+.metals/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.tfvars

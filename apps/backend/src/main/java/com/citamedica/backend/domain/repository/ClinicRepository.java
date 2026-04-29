@@ -1,12 +1,23 @@
 package com.citamedica.backend.domain.repository;
 
 import com.citamedica.backend.domain.model.Clinic;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
-@Repository
-public interface ClinicRepository extends JpaRepository<Clinic, Long> {
+/**
+ * Outbound port: persist and load clinics (persistence-agnostic).
+ */
+public interface ClinicRepository {
+    List<Clinic> findAll();
+
+    Optional<Clinic> findById(Long id);
+
     Optional<Clinic> findBySlug(String slug);
+
+    Clinic save(Clinic entity);
+
+    void deleteById(Long id);
+
+    void deleteAll();
 }

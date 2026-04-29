@@ -27,17 +27,24 @@ calcom:
 
 # JWT Configuration - Test Configuration
 jwt:
-  secret: test-secret-key
+  secret: test-secret-key-which-is-at-least-32-bytes-long
   expiration: 86400000
 
 # Application Security - Test Configuration
 app:
   security:
     jwt:
-      secret: test-secret-key
+      secret: test-secret-key-which-is-at-least-32-bytes-long
       expiration: 86400000
+    auth:
+      username: test-admin
+      password: test-admin-123
+      roles: ADMIN,STAFF
   cors:
     allowed-origins: http://localhost:3000,http://localhost:3001
   notifications:
     enabled: false
-
+  availability:
+    enforced: false
+    sync:
+      enabled: false

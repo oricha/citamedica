@@ -1,0 +1,23 @@
+aws_region = "us-east-1"
+
+backend_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/citamedica-backend:latest"
+landing_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/citamedica-landing:latest"
+calcom_image  = "calcom/cal.com:latest"
+
+backend_database_url      = "jdbc:postgresql://citamedica-db.xxxxxx.us-east-1.rds.amazonaws.com:5432/citamedica"
+backend_database_user     = "citamedica"
+backend_database_password = "cambia-esto"
+
+calcom_database_url        = "postgresql://calcom:password@calcom-db.xxxxxx.us-east-1.rds.amazonaws.com:5432/calcom"
+calcom_database_direct_url = "postgresql://calcom:password@calcom-db.xxxxxx.us-east-1.rds.amazonaws.com:5432/calcom"
+
+calcom_api_url         = "https://calcom.tu-dominio.com/api/v2"
+calcom_api_key         = ""
+calcom_webhook_secret  = "cambia-esto"
+jwt_secret             = "cambia-esto"
+notifications_enabled  = "false"
+nextauth_secret        = "cambia-esto"
+calendso_encryption_key = "cambia-esto-con-32-caracteres"
+
+backend_public_url = "https://api.tu-dominio.com"
+calcom_public_url  = "https://calcom.tu-dominio.com"

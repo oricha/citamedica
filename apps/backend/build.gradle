@@ -1,14 +1,32 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.flywaydb:flyway-gradle-plugin:10.15.0'
+        classpath 'org.flywaydb:flyway-database-postgresql:10.15.0'
+        classpath 'org.flywaydb:flyway-core:10.15.0'
+        classpath 'org.postgresql:postgresql:42.7.8'
+    }
+}
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.7'
     id 'io.spring.dependency-management' version '1.1.4'
 }
 
+apply plugin: 'org.flywaydb.flyway'
+
 group = 'com.citamedica'
 version = '0.0.1-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 configurations {
@@ -18,7 +36,7 @@ configurations {
 }
 
 ext {
-    lombokVersion = '1.18.30'
+    lombokVersion = '1.18.32'
 }
 
 repositories {
@@ -35,10 +53,13 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
     runtimeOnly 'org.postgresql:postgresql'
-    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-core:10.15.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:10.15.0'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework:spring-aspects'
+    implementation 'com.sendgrid:sendgrid-java:4.10.2'
+    implementation 'com.twilio.sdk:twilio:9.2.0'
     implementation 'commons-codec:commons-codec'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
@@ -63,4 +84,11 @@ tasks.named('test') {
 
 bootJar {
     mainClass.set('com.citamedica.backend.BackendApplication')
+}
+
+flyway {
+    url = System.getenv('SPRING_DATASOURCE_URL') ?: 'jdbc:postgresql://localhost:5432/citamedica'
+    user = System.getenv('SPRING_DATASOURCE_USERNAME') ?: 'citamedica'
+    password = System.getenv('SPRING_DATASOURCE_PASSWORD') ?: 'citamedica123'
+    locations = ['classpath:db/migration']
 }

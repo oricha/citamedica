@@ -98,10 +98,10 @@ CitaMedica backend follows the **Hexagonal Architecture** (also known as Ports a
                               │
 ┌─────────────────────────────▼───────────────────────────────────────┐
 │                        External Systems                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐             │
-│  │  PostgreSQL  │  │   Cal.com    │  │    Redis     │             │
-│  │   Database   │  │     API      │  │    Cache     │             │
-│  └──────────────┘  └──────────────┘  └──────────────┘             │
+│  ┌──────────────┐  ┌──────────────┐                               │
+│  │  PostgreSQL  │  │   Cal.com    │                               │
+│  │   Database   │  │     API      │                               │
+│  └──────────────┘  └──────────────┘                               │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -129,7 +129,7 @@ CitaMedica backend follows the **Hexagonal Architecture** (also known as Ports a
 
 ### 2. Application Layer (Use Cases)
 
-**Location**: `com.citamedica.backend.service`
+**Location**: `com.citamedica.backend.application`
 
 **Purpose**: Orchestrates domain operations and implements use cases. Contains application-specific business logic.
 
@@ -152,13 +152,13 @@ CitaMedica backend follows the **Hexagonal Architecture** (also known as Ports a
 
 ### 3. Adapter Layer (Input/Output)
 
-**Location**: `com.citamedica.backend.api`, `com.citamedica.backend.integration`
+**Location**: `com.citamedica.backend.adapter.in`, `com.citamedica.backend.adapter.out`
 
 **Purpose**: Adapts external requests/responses to domain operations and vice versa.
 
 #### Input Adapters (Driving Side)
 
-**Location**: `com.citamedica.backend.api`
+**Location**: `com.citamedica.backend.adapter.in.rest`, `com.citamedica.backend.adapter.in.webhook`, `com.citamedica.backend.adapter.in.dto`
 
 **Components**:
 - **REST Controllers**: Handle HTTP requests
@@ -166,7 +166,7 @@ CitaMedica backend follows the **Hexagonal Architecture** (also known as Ports a
 - **Webhook Controllers**: Handle external webhooks
   - `CalWebhookController`
 - **DTOs**: Data Transfer Objects for API contracts
-  - Request/Response objects in `api/v1/dto`
+  - Request/Response objects in `adapter.in.dto`
 
 **Responsibilities**:
 - Receive external requests (HTTP, webhooks)
@@ -178,7 +178,7 @@ CitaMedica backend follows the **Hexagonal Architecture** (also known as Ports a
 
 #### Output Adapters (Driven Side)
 
-**Location**: `com.citamedica.backend.integration`
+**Location**: `com.citamedica.backend.adapter.out.integration`, `com.citamedica.backend.adapter.out.persistence`
 
 **Components**:
 - **External Service Clients**: Integrate with external systems
@@ -187,7 +187,7 @@ CitaMedica backend follows the **Hexagonal Architecture** (also known as Ports a
   - `NotificationAdapter`, `EmailNotification`, `SMSNotification`
 
 **Responsibilities**:
-- Implement repository interfaces (via Spring Data JPA)
+- Implement domain repository ports (JPA in `adapter.out.persistence.jpa`, adapters delegate)
 - Call external APIs
 - Handle external service protocols
 - Convert between domain and external formats
@@ -204,7 +204,7 @@ CitaMedica backend follows the **Hexagonal Architecture** (also known as Ports a
 - **Security**: Authentication and authorization
   - `JwtAuthenticationFilter`, `JwtTokenProvider`, `UserPrincipal`
 - **Cross-cutting Concerns**: Aspects and filters
-  - `AuditAspect`, `CorrelationIdFilter`, `GlobalExceptionHandler`
+  - `AuditAspect`, `CorrelationIdFilter`; `GlobalExceptionHandler` lives in `adapter.in.rest`
 - **Database Migrations**: Flyway scripts
   - `src/main/resources/db/migration/V*.sql`
 

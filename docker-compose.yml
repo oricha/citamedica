@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
-  # PostgreSQL for CitaMedica Backend
+  # PostgreSQL for CitaMedica Backend (optional: use profile docker-db, or Postgres nativo en DEV)
   postgres-clinic:
+    profiles:
+      - docker-db
     image: postgres:16-alpine
     container_name: citamedica-postgres
     environment:
@@ -21,8 +21,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis for caching
+  # Redis for CitaMedica Backend (cache/session helpers)
   redis:
+    profiles:
+      - docker-db
     image: redis:7-alpine
     container_name: citamedica-redis
     ports:
@@ -35,8 +37,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend API (Spring Boot)
+  # Backend API (Spring Boot) — solo con perfil docker-db; en DEV local usar make backend-local
   backend-api:
+    profiles:
+      - docker-db
     build:
       context: ./apps/backend
       dockerfile: Dockerfile
@@ -47,11 +51,12 @@ services:
       SPRING_DATASOURCE_USERNAME: citamedica
       SPRING_DATASOURCE_PASSWORD: citamedica123
       CALCOM_API_URL: http://calcom:3000/api/v2
+      CALCOM_API_KEY: ${CALCOM_API_KEY:-}
       CALCOM_WEBHOOK_SECRET: ${CALCOM_WEBHOOK_SECRET:-dev-webhook-secret-change-in-production}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
+      NOTIFICATIONS_ENABLED: ${NOTIFICATIONS_ENABLED:-false}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      NOTIFICATIONS_ENABLED: ${NOTIFICATIONS_ENABLED:-false}
     ports:
       - "8080:8080"
     depends_on:
@@ -124,9 +129,11 @@ services:
   # Cal.com self-hosted
   calcom:
     image: calcom/cal.com:latest
+    platform: linux/amd64
     container_name: citamedica-calcom
     environment:
       DATABASE_URL: postgresql://calcom:calcom123@postgres-cal:5432/calcom
+      DATABASE_DIRECT_URL: postgresql://calcom:calcom123@postgres-cal:5432/calcom
       REDIS_URL: redis://redis-cal:6379
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-this-to-a-random-string-in-production}
       CALENDSO_ENCRYPTION_KEY: ${CALENDSO_ENCRYPTION_KEY:-change-this-to-a-32-char-random-string}
@@ -134,6 +141,9 @@ services:
       NEXT_PUBLIC_API_V2_URL: http://localhost:3000/api/v2
       # Webhook configuration
       WEBHOOK_SECRET: ${CALCOM_WEBHOOK_SECRET:-dev-webhook-secret-change-in-production}
+      # Force migrations and skip validation
+      SKIP_DB_MIGRATION: "false"
+      SKIP_ENV_VALIDATION: "true"
     ports:
       - "3000:3000"
     depends_on:
@@ -148,7 +158,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 90s
+      start_period: 120s
 
 volumes:
   postgres-clinic-data:

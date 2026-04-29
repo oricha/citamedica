@@ -4,17 +4,23 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.stream.Collectors;
 
 @Component
@@ -28,10 +34,27 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration:86400000}")
     private long jwtExpiration; // 24 hours in milliseconds
 
+    private Key signingKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
+
     public String generateToken(Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        String username;
+        Long userId;
+
+        if (principal instanceof UserPrincipal userPrincipal) {
+            username = userPrincipal.getUsername();
+            userId = userPrincipal.getId();
+        } else if (principal instanceof UserDetails userDetails) {
+            username = userDetails.getUsername();
+            userId = null;
+        } else {
+            username = authentication.getName();
+            userId = null;
+        }
         
-        String roles = userPrincipal.getAuthorities().stream()
+        String roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
@@ -39,18 +62,19 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
-                .claim("userId", userPrincipal.getId())
+                .setSubject(username)
+                .claim("userId", userId)
                 .claim("roles", roles)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(signingKey())
                 .compact();
     }
 
     public String getUsernameFromJWT(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecret)
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
 
@@ -58,17 +82,35 @@ public class JwtTokenProvider {
     }
 
     public Long getUserIdFromJWT(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecret)
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
 
         return claims.get("userId", Long.class);
     }
 
+    public List<String> getRolesFromJWT(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        String roles = claims.get("roles", String.class);
+        if (roles == null || roles.isBlank()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(roles.split(","))
+                .map(String::trim)
+                .filter(role -> !role.isBlank())
+                .collect(Collectors.toList());
+    }
+
     public boolean validateToken(String authToken) {
         try {
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+            Jwts.parserBuilder().setSigningKey(signingKey()).build().parseClaimsJws(authToken);
             return true;
         } catch (SignatureException ex) {
             log.error("Invalid JWT signature");

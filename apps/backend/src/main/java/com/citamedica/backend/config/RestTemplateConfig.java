@@ -8,13 +8,19 @@ import org.springframework.beans.factory.annotation.Value;
 @Configuration
 public class RestTemplateConfig {
 
-    @Value("${calcom.api.key}")
+    @Value("${calcom.api.key:#{null}}")
     private String calcomApiKey;
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // If needed, configure RestTemplate with interceptors for authentication
+        // when calcomApiKey is available
+        if (calcomApiKey != null && !calcomApiKey.isEmpty()) {
+            // Configure authentication interceptor here if needed
+        }
+        
+        return restTemplate;
     }
-
-    // If needed, configure RestTemplate with interceptors for authentication
 }

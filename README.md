@@ -64,9 +64,9 @@ CitaMedica follows a **Hexagonal Architecture** (Ports and Adapters) pattern for
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    External Services                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  PostgreSQL  │  │   Cal.com    │  │    Redis     │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│  ┌──────────────┐  ┌──────────────┐                        │
+│  │  PostgreSQL  │  │   Cal.com    │                        │
+│  └──────────────┘  └──────────────┘                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -102,7 +102,6 @@ CitaMedica follows a **Hexagonal Architecture** (Ports and Adapters) pattern for
 ### Infrastructure
 - **Docker & Docker Compose**: Containerization and orchestration
 - **Cal.com**: Self-hosted scheduling platform
-- **Redis**: Caching and session management
 - **Nginx**: Reverse proxy and static file serving
 
 ### Testing
@@ -119,6 +118,10 @@ Before you begin, ensure you have the following installed:
 - **Docker Desktop** (v20.10+) and **Docker Compose** (v2.0+)
   - [Install Docker Desktop](https://www.docker.com/products/docker-desktop)
   - Verify: `docker --version` and `docker-compose --version`
+
+- **PostgreSQL 16+** (for local backend / DEV on the host)
+  - Used on `localhost:5432` when you run the API with `make backend-local` (see [Development](#development)).
+  - Optional if you use `make dev-docker` instead (database runs in Docker).
 
 - **Java 21** (for local backend development)
   - [Install Java 21 JDK](https://adoptium.net/)
@@ -161,51 +164,63 @@ cp .env.example .env
 
 Edit the `.env` file with your preferred text editor. See [Configuration](#configuration) section for details.
 
-### 3. Start All Services
+### 3. PostgreSQL for local DEV (recommended path)
 
-Using Make (recommended):
+If you use **`make dev`** (default), the CitaMedica API uses PostgreSQL on your machine, not in Docker. Create the database once (as a PostgreSQL superuser):
+
+```bash
+psql -U postgres -f docs/postgres-local-dev-setup.sql
+```
+
+Or follow the same user/database names as [`.env.example`](.env.example) (`citamedica` / `citamedica123`, database `citamedica`).
+
+Then apply migrations (optional before first boot; Flyway also runs when the app starts):
+
+```bash
+make db-migrate
+```
+
+### 4. Start services
+
+**Default (Cal.com + landing in Docker, API on the host with local Postgres):**
 
 ```bash
 make dev
+make backend-local
 ```
 
-Or using Docker Compose directly:
+`backend-local` loads `.env` and runs `./gradlew bootRun` against `SPRING_DATASOURCE_*`.
+
+**Full stack in Docker** (same behavior as older docs: `postgres-clinic` + `backend-api` + Cal.com + landing):
+
+```bash
+make dev-docker
+```
+
+Raw Compose equivalents:
 
 ```bash
 docker-compose up -d
+docker-compose --profile docker-db up -d
 ```
 
-The first startup will take 5-10 minutes as Docker downloads images and builds containers.
+The first startup can take several minutes while images download and build.
 
-### 4. Verify Services
-
-Check that all services are running:
+### 5. Verify services
 
 ```bash
 make status
 ```
 
-Or:
+With **`make dev`** you should see `postgres-cal`, `landing`, and `calcom` in Docker. The backend appears only after **`make backend-local`**. With **`make dev-docker`**, you should also see `postgres-clinic` and `backend-api`.
+In full Docker mode, Redis services are also available:
+- `citamedica-redis` on `localhost:6379`
+- `calcom-redis` on `localhost:6380`
 
-```bash
-docker-compose ps
-```
-
-You should see all services in "Up" state:
-- `postgres-clinic` - Main database
-- `postgres-cal` - Cal.com database
-- `redis` - Cache for backend
-- `redis-cal` - Cache for Cal.com
-- `backend-api` - Spring Boot API
-- `landing` - React landing page
-- `calcom` - Cal.com scheduling platform
-
-### 5. Access the Applications
-
-Once all services are running:
+### 6. Access the applications
 
 - **Landing Page**: http://localhost:3001
-- **Backend API**: http://localhost:8080
+- **Backend API**: http://localhost:8080 (after `make backend-local` or `make dev-docker`)
 - **Cal.com**: http://localhost:3000
 - **API Health Check**: http://localhost:8080/actuator/health
 - **API Metrics**: http://localhost:8080/actuator/metrics
@@ -216,20 +231,34 @@ Once all services are running:
 
 The `.env` file contains all configuration. Here are the key variables:
 
+### Database Migrations (Flyway)
+
+- Migrations live in `apps/backend/src/main/resources/db/migration`.
+- Current baseline scripts: `V1` to `V7`.
+- Migrations run automatically on backend startup (`spring.flyway.enabled=true` in `application.yml`).
+- Run manually from backend module:
+
+```bash
+cd apps/backend
+./gradlew flywayMigrate
+```
+
 #### Backend Configuration
 
 ```bash
-# Database Connection
-SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-clinic:5432/citamedica
+# Database (local DEV on host — see .env.example)
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/citamedica
 SPRING_DATASOURCE_USERNAME=citamedica
 SPRING_DATASOURCE_PASSWORD=citamedica123
+
+# Inside Docker, compose sets host postgres-clinic instead of localhost.
 
 # JWT Authentication (⚠️ Change in production!)
 JWT_SECRET=change-this-to-a-secure-random-string-in-production
 JWT_EXPIRATION=86400000  # 24 hours in milliseconds
 
-# Cal.com Integration
-CALCOM_API_URL=http://calcom:3000/api/v2
+# Cal.com Integration (API on host uses localhost; in backend container use http://calcom:3000/api/v2)
+CALCOM_API_URL=http://localhost:3000/api/v2
 CALCOM_API_KEY=your-calcom-api-key-here
 CALCOM_WEBHOOK_SECRET=your-webhook-secret-here
 
@@ -245,9 +274,6 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 ```bash
 # Cal.com Database
 DATABASE_URL=postgresql://calcom:calcom123@postgres-cal:5432/calcom
-
-# Cal.com Redis
-REDIS_URL=redis://redis-cal:6379
 
 # NextAuth Secret (⚠️ Must be at least 32 characters!)
 NEXTAUTH_SECRET=change-this-to-a-random-string-minimum-32-characters
@@ -310,7 +336,7 @@ To enable automatic appointment synchronization from Cal.com to CitaMedica:
    - **Secret**: Generate a random string (e.g., using `openssl rand -hex 32`)
 4. Save the webhook
 5. Update `CALCOM_WEBHOOK_SECRET` in your `.env` file with the secret
-6. Restart the backend: `docker-compose restart backend-api`
+6. Restart the backend: `docker-compose --profile docker-db restart backend-api`, or restart `make backend-local` if the API runs on the host
 
 ### 4. Test Webhook
 
@@ -318,6 +344,17 @@ To enable automatic appointment synchronization from Cal.com to CitaMedica:
 2. Check backend logs: `make backend-logs`
 3. Look for webhook processing logs with correlation IDs
 4. Verify the appointment was created: `curl http://localhost:8080/api/v1/appointments?doctorId=1&date=2025-10-27`
+
+### Webhook Signature Verification
+
+- Endpoint: `POST /webhooks/cal`
+- Required header: `x-cal-signature`
+- Expected format: `sha256=<hmac_hex>`
+- HMAC algorithm: `HMAC-SHA256` using the shared secret in `CALCOM_WEBHOOK_SECRET`
+- Behavior:
+  - Missing signature: `401 Unauthorized` with `{\"received\":false,\"message\":\"Missing signature\"}`
+  - Invalid signature: `401 Unauthorized` with `{\"received\":false,\"message\":\"Invalid signature\"}`
+  - Valid signature: webhook is processed and returns `200 OK`
 
 ### Webhook Payload Example
 
@@ -351,41 +388,52 @@ Cal.com sends webhooks in this format:
 
 ## 🏃 Running the Application
 
-### Quick Start (Recommended)
+### Quick start (local Postgres for the API)
 
 ```bash
-# Start all services
 make dev
+make backend-local
+```
 
-# View logs
+### Full stack in Docker
+
+```bash
+make dev-docker
+```
+
+### Logs and stop
+
+```bash
 make logs
-
-# Stop services
 make down
 ```
 
-### Individual Service Management
+### Individual service management
 
 ```bash
-# View specific service logs
-make backend-logs
 make landing-logs
 make calcom-logs
+make db-logs
 
-# Restart a specific service
-docker-compose restart backend-api
+# Backend and postgres-clinic logs only if you use make dev-docker
+make backend-logs
+make db-logs-clinic
 
-# Rebuild and restart
+docker-compose --profile docker-db restart backend-api
+
 make rebuild
+make rebuild-docker
 ```
 
-### Load Test Data
+### Load test data
 
 ```bash
-# Load seed data (creates sample clinic, doctors, patients, appointments)
 make seed
+```
 
-# Verify data was loaded
+With **`make dev-docker`**, this restarts the backend container. With **`make backend-local`**, restart the Gradle process (Ctrl+C, then `make backend-local` again). Seed runs at startup when the database is still empty.
+
+```bash
 make backend-logs
 ```
 
@@ -401,11 +449,12 @@ See [`apps/backend/SEED_DATA.md`](apps/backend/SEED_DATA.md) for details.
 
 Follow this complete flow to verify the system works correctly:
 
-### 1. Start the System
+### 1. Start the system
 
 ```bash
 make dev
-# Wait ~15 seconds for all services to be ready
+make backend-local
+# or: make dev-docker
 ```
 
 ### 2. Verify Services Health
@@ -503,7 +552,7 @@ Expected response:
 
 ### Complete Test Checklist
 
-- [ ] All services start successfully (`make dev`)
+- [ ] All services start successfully (`make dev` + `make backend-local`, or `make dev-docker`)
 - [ ] Health check returns UP (`make health`)
 - [ ] Landing page loads at http://localhost:3001
 - [ ] Cal.com embed widget displays correctly
@@ -532,6 +581,18 @@ Most endpoints require JWT authentication. Include the token in the Authorizatio
 Authorization: Bearer <your-jwt-token>
 ```
 
+Get a JWT token from:
+
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+
 ### Endpoints
 
 #### Patients
@@ -542,13 +603,11 @@ POST /api/v1/patients
 Content-Type: application/json
 
 {
-  "firstName": "John",
-  "lastName": "Doe",
+  "fullName": "John Doe",
   "email": "john.doe@example.com",
   "phone": "+34 600 000 000",
-  "dateOfBirth": "1990-01-15",
-  "insuranceProvider": "Sanitas",
-  "insuranceNumber": "SAN123456"
+  "birthDate": "1990-01-15",
+  "insurancePlan": "Sanitas"
 }
 ```
 
@@ -556,13 +615,11 @@ Response: `201 Created`
 ```json
 {
   "id": 1,
-  "firstName": "John",
-  "lastName": "Doe",
+  "fullName": "John Doe",
   "email": "john.doe@example.com",
   "phone": "+34 600 000 000",
-  "dateOfBirth": "1990-01-15",
-  "insuranceProvider": "Sanitas",
-  "insuranceNumber": "SAN123456"
+  "birthDate": "1990-01-15",
+  "insurancePlan": "Sanitas"
 }
 ```
 
@@ -570,7 +627,7 @@ Response: `201 Created`
 
 **List Doctors by Clinic**
 ```http
-GET /api/v1/doctors?clinicId=1
+GET /api/v1/doctors?clinic=1
 ```
 
 Response: `200 OK`
@@ -578,8 +635,9 @@ Response: `200 OK`
 [
   {
     "id": 1,
-    "firstName": "María",
-    "lastName": "García López",
+    "clinicId": 1,
+    "clinicName": "Clinica Demo",
+    "fullName": "María García López",
     "specialty": "Cardiología",
     "email": "maria.garcia@clinicademo.com",
     "phone": "+34 612 345 678",
@@ -636,7 +694,7 @@ Content-Type: application/json
 ```http
 POST /webhooks/cal
 Content-Type: application/json
-X-Cal-Signature-256: <hmac-signature>
+x-cal-signature: sha256=<hmac-signature>
 
 {
   "triggerEvent": "BOOKING_CREATED",
@@ -746,19 +804,37 @@ citamedica/
 
 ## 💻 Development
 
-### Backend Development
+### Backend development
 
-#### Running Locally (without Docker)
+#### Running locally (PostgreSQL on the host, recommended DEV)
 
-1. Start PostgreSQL:
+1. Install PostgreSQL 16+ and create the database (see [docs/postgres-local-dev-setup.sql](docs/postgres-local-dev-setup.sql) and `.env.example`).
+2. Start Cal.com and landing: `make dev`
+3. Start the API with environment from `.env`:
+
 ```bash
-docker-compose up -d postgres-clinic
+make backend-local
 ```
 
-2. Run the backend:
+Equivalent manual command:
+
 ```bash
-cd apps/backend
-./gradlew bootRun
+set -a; [ -f .env ] && . ./.env; set +a
+cd apps/backend && ./gradlew bootRun
+```
+
+#### Running backend and clinic DB in Docker
+
+Use when you do not want a local PostgreSQL instance:
+
+```bash
+make dev-docker
+```
+
+Or only the clinic database and backend:
+
+```bash
+docker-compose --profile docker-db up -d postgres-clinic backend-api
 ```
 
 #### Running Tests
@@ -831,17 +907,17 @@ npm run build
 npm run preview
 ```
 
-### Database Access
+### Database access
 
 ```bash
-# Connect to the database
+# CitaMedica DB in Docker (requires make dev-docker)
 make db-shell
 
-# Inside psql:
-\dt                    # List tables
-\d appointment         # Describe appointment table
-SELECT * FROM doctor;  # Query data
+# CitaMedica DB on localhost (uses SPRING_DATASOURCE_* from .env)
+make db-shell-local
 ```
+
+Inside `psql`: `\dt`, `\d appointment`, `SELECT * FROM doctor;`, etc.
 
 ## 🧪 Testing
 
@@ -898,7 +974,7 @@ npx playwright test --debug
 1. Check Docker is running: `docker ps`
 2. Check available disk space: `df -h`
 3. Check available memory: `free -h` (Linux) or Activity Monitor (macOS)
-4. Clean up Docker: `make clean` then `make dev`
+4. Clean up Docker: `make clean` then `make dev` / `make dev-docker` as needed
 5. Check logs: `make logs`
 
 #### Backend Won't Connect to Database
@@ -906,11 +982,12 @@ npx playwright test --debug
 **Problem**: Backend logs show connection errors
 
 **Solutions**:
-1. Verify PostgreSQL is running: `docker-compose ps postgres-clinic`
-2. Check database credentials in `.env`
-3. Wait longer (database takes ~10 seconds to initialize)
-4. Check database logs: `make db-logs`
-5. Try connecting manually: `make db-shell`
+1. **Local Postgres:** ensure the service is up (`pg_isready`, `brew services list`, etc.) and `SPRING_DATASOURCE_URL` points to `localhost:5432` (or your port).
+2. **Docker DB:** `docker-compose --profile docker-db ps postgres-clinic`
+3. Check database credentials in `.env`
+4. After `make dev-docker`, wait for the healthcheck on `postgres-clinic`
+5. Docker Cal DB logs: `make db-logs`; clinic container logs: `make db-logs-clinic`
+6. Try `make db-shell-local` (host) or `make db-shell` (Docker clinic)
 
 #### Cal.com Webhook Not Working
 
@@ -957,8 +1034,8 @@ LANDING_PORT=3003
 **Problem**: `make seed` doesn't create data
 
 **Solutions**:
-1. Check if data already exists: `make db-shell` then `SELECT * FROM clinic;`
-2. Reset database: `make db-reset`
+1. Check if data already exists: `make db-shell-local` or `make db-shell`, then `SELECT * FROM clinic;`
+2. Reset Docker clinic DB: `make db-reset` (host Postgres: recreate database manually)
 3. Check backend logs: `make backend-logs | grep -i seed`
 4. Verify SeedDataService is enabled (not in test profile)
 
@@ -1016,8 +1093,8 @@ Enable debug logging for more detailed information:
 LOGGING_LEVEL_CITAMEDICA=DEBUG
 SPRING_PROFILES_ACTIVE=dev
 
-# Restart backend
-docker-compose restart backend-api
+# Restart backend (Docker) or your local Gradle process
+docker-compose --profile docker-db restart backend-api
 ```
 
 ## 🤝 Contributing

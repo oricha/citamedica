@@ -1,0 +1,21 @@
+ssh_host             = "192.168.1.50"
+ssh_user             = "root"
+ssh_port             = 22
+ssh_private_key_path = "~/.ssh/id_rsa"
+deploy_path          = "/opt/citamedica"
+
+backend_image = "ghcr.io/tu-org/citamedica-backend:latest"
+landing_image = "ghcr.io/tu-org/citamedica-landing:latest"
+calcom_image  = "calcom/cal.com:latest"
+
+postgres_clinic_password = "cambia-esto"
+postgres_cal_password    = "cambia-esto"
+calcom_api_url           = "http://calcom:3000/api/v2"
+calcom_api_key           = ""
+calcom_webhook_secret    = "dev-webhook-secret-change-in-production"
+jwt_secret               = "dev-secret-key-change-in-production"
+notifications_enabled    = "false"
+nextauth_secret          = "change-this-to-a-random-string-in-production"
+calendso_encryption_key  = "change-this-to-a-32-char-random-string"
+app_public_url           = "http://tu-servidor:8080"
+calcom_public_url        = "http://tu-servidor:3000"

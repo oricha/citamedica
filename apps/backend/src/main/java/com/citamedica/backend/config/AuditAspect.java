@@ -2,7 +2,7 @@ package com.citamedica.backend.config;
 
 import com.citamedica.backend.domain.model.Appointment;
 import com.citamedica.backend.domain.model.Patient;
-import com.citamedica.backend.service.AuditService;
+import com.citamedica.backend.application.AuditService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -30,9 +30,9 @@ public class AuditAspect {
         this.objectMapper = objectMapper;
     }
 
-    @Pointcut("execution(* com.citamedica.backend.service.*Service.create*(..)) || " +
-              "execution(* com.citamedica.backend.service.*Service.update*(..)) || " +
-              "execution(* com.citamedica.backend.service.*Service.delete*(..))")
+    @Pointcut("execution(* com.citamedica.backend.application.*Service.create*(..)) || " +
+              "execution(* com.citamedica.backend.application.*Service.update*(..)) || " +
+              "execution(* com.citamedica.backend.application.*Service.delete*(..))")
     public void serviceMethods() {}
 
     @AfterReturning(pointcut = "serviceMethods()", returning = "result")

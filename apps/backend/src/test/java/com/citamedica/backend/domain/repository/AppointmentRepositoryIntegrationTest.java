@@ -8,12 +8,14 @@ import com.citamedica.backend.domain.model.Patient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,8 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration tests for AppointmentRepository.
  * Tests JPA repository methods with H2 database.
  */
-@DataJpaTest
+@SpringBootTest
 @ActiveProfiles("test")
+@Transactional
 class AppointmentRepositoryIntegrationTest {
 
     @Autowired
@@ -40,9 +43,14 @@ class AppointmentRepositoryIntegrationTest {
     private Doctor testDoctor;
     private Patient testPatient;
     private Clinic testClinic;
+    private String uniqueDoctorEmail;
+    private String uniquePatientEmail;
 
     @BeforeEach
     void setUp() {
+        uniqueDoctorEmail = "doctor-" + UUID.randomUUID() + "@test.com";
+        uniquePatientEmail = "patient-" + UUID.randomUUID() + "@test.com";
+
         appointmentRepository.deleteAll();
         doctorRepository.deleteAll();
         patientRepository.deleteAll();
@@ -50,7 +58,7 @@ class AppointmentRepositoryIntegrationTest {
 
         testClinic = new Clinic();
         testClinic.setName("Test Clinic");
-        testClinic.setSlug("test-clinic");
+        testClinic.setSlug("clinic-" + UUID.randomUUID());
         testClinic.setAddress("Test Address");
         testClinic.setPhone("+34600000000");
         testClinic.setCreatedAt(LocalDateTime.now());
@@ -60,14 +68,14 @@ class AppointmentRepositoryIntegrationTest {
         testDoctor.setClinic(testClinic);
         testDoctor.setFullName("Dr. Test");
         testDoctor.setSpecialty("General Medicine");
-        testDoctor.setEmail("doctor@test.com");
+        testDoctor.setEmail(uniqueDoctorEmail);
         testDoctor.setActive(true);
         testDoctor.setCreatedAt(LocalDateTime.now());
         testDoctor = doctorRepository.save(testDoctor);
 
         testPatient = new Patient();
         testPatient.setFullName("Test Patient");
-        testPatient.setEmail("patient@test.com");
+        testPatient.setEmail(uniquePatientEmail);
         testPatient.setPhone("+34600000000");
         testPatient.setCreatedAt(LocalDateTime.now());
         testPatient = patientRepository.save(testPatient);

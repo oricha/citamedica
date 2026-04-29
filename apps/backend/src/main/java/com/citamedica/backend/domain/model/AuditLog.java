@@ -28,7 +28,8 @@ public class AuditLog {
     @Column(nullable = false)
     private LocalDateTime at;
 
-    @Column(columnDefinition = "JSONB")
+    /** Stored as text/JSON; use TEXT in Flyway for PostgreSQL for large payloads. */
+    @Column(columnDefinition = "TEXT")
     private String metadata;
 
     // Constructors, getters, setters
