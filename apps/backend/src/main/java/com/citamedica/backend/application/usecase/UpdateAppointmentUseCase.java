@@ -14,6 +14,7 @@ import com.citamedica.backend.domain.repository.TimeSlotRepository;
 import com.citamedica.backend.domain.service.AppointmentAvailabilityValidator;
 import com.citamedica.backend.domain.service.AppointmentDomainService;
 import com.citamedica.backend.domain.service.AvailabilityConflictDetectionService;
+import com.citamedica.backend.application.medical.RecordAppointmentCompletionMedicalHistoryUseCase;
 import com.citamedica.backend.exception.domain.ConflictingAppointmentException;
 import com.citamedica.backend.exception.domain.EntityNotFoundDomainException;
 import com.citamedica.backend.exception.domain.SlotUnavailableException;
@@ -36,6 +37,8 @@ public class UpdateAppointmentUseCase {
     private final DoctorAvailabilityConfigurationRepository doctorAvailabilityConfigurationRepository;
     private final AppointmentAvailabilityValidator appointmentAvailabilityValidator;
     private final AvailabilityConflictDetectionService availabilityConflictDetectionService;
+    private final CreateInvoiceForAppointmentUseCase createInvoiceForAppointmentUseCase;
+    private final RecordAppointmentCompletionMedicalHistoryUseCase recordAppointmentCompletionMedicalHistoryUseCase;
 
     public UpdateAppointmentUseCase(
             AppointmentRepository appointmentRepository,
@@ -46,7 +49,9 @@ public class UpdateAppointmentUseCase {
             DoctorAvailabilityBlockRepository doctorAvailabilityBlockRepository,
             DoctorAvailabilityConfigurationRepository doctorAvailabilityConfigurationRepository,
             AppointmentAvailabilityValidator appointmentAvailabilityValidator,
-            AvailabilityConflictDetectionService availabilityConflictDetectionService) {
+            AvailabilityConflictDetectionService availabilityConflictDetectionService,
+            CreateInvoiceForAppointmentUseCase createInvoiceForAppointmentUseCase,
+            RecordAppointmentCompletionMedicalHistoryUseCase recordAppointmentCompletionMedicalHistoryUseCase) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentDomainService = appointmentDomainService;
         this.sendAppointmentChangeNotificationUseCase = sendAppointmentChangeNotificationUseCase;
@@ -56,6 +61,8 @@ public class UpdateAppointmentUseCase {
         this.doctorAvailabilityConfigurationRepository = doctorAvailabilityConfigurationRepository;
         this.appointmentAvailabilityValidator = appointmentAvailabilityValidator;
         this.availabilityConflictDetectionService = availabilityConflictDetectionService;
+        this.createInvoiceForAppointmentUseCase = createInvoiceForAppointmentUseCase;
+        this.recordAppointmentCompletionMedicalHistoryUseCase = recordAppointmentCompletionMedicalHistoryUseCase;
     }
 
     @Transactional
@@ -69,6 +76,7 @@ public class UpdateAppointmentUseCase {
             Long timeSlotId) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundDomainException("Appointment not found: " + id));
+        AppointmentStatus previousStatus = appointment.getStatus();
 
         LocalDateTime effectiveStart = startAt != null ? startAt : appointment.getStartAt();
         LocalDateTime effectiveEnd = endAt != null ? endAt : appointment.getEndAt();
@@ -119,6 +127,11 @@ public class UpdateAppointmentUseCase {
         if (newLockedSlot != null) {
             newLockedSlot.markBooked(saved);
             timeSlotRepository.save(newLockedSlot);
+        }
+
+        if (saved.getStatus() == AppointmentStatus.COMPLETED && previousStatus != AppointmentStatus.COMPLETED) {
+            createInvoiceForAppointmentUseCase.execute(saved.getId());
+            recordAppointmentCompletionMedicalHistoryUseCase.execute(saved);
         }
 
         sendAppointmentChangeNotificationUseCase.execute(saved);

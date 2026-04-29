@@ -29,7 +29,7 @@ class FlywayMigrationScriptsTest {
                 .sorted(Comparator.comparingInt(this::extractVersion))
                 .collect(Collectors.toList());
 
-        assertEquals(16, migrationFiles.size(), "Expected exactly 16 migration scripts");
+        assertEquals(44, migrationFiles.size(), "Expected exactly 44 migration scripts");
 
         for (int i = 0; i < migrationFiles.size(); i++) {
             String fileName = migrationFiles.get(i);

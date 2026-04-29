@@ -2,6 +2,8 @@ package com.citamedica.backend.adapter.out.persistence.jpa;
 
 import com.citamedica.backend.domain.model.Appointment;
 import com.citamedica.backend.domain.model.AppointmentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,6 +23,8 @@ public interface AppointmentJpaRepository extends JpaRepository<Appointment, Lon
     List<Appointment> findByCalBookingId(String calBookingId);
 
     List<Appointment> findByStartAtBetween(LocalDateTime start, LocalDateTime end);
+
+    Page<Appointment> findByPatient_IdOrderByStartAtDesc(Long patientId, Pageable pageable);
 
     @Query("SELECT COUNT(a) FROM Appointment a WHERE a.doctor.id = :doctorId AND a.status = :status AND a.startAt < :endAt AND a.endAt > :startAt")
     long countOverlapping(

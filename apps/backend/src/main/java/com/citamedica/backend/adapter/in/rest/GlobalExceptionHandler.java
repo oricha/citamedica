@@ -1,11 +1,19 @@
 package com.citamedica.backend.adapter.in.rest;
 
 import com.citamedica.backend.adapter.out.integration.calcom.CalcomApiException;
+import com.citamedica.backend.exception.domain.AnalyticsException;
 import com.citamedica.backend.exception.domain.DuplicateEntityException;
 import com.citamedica.backend.exception.domain.EntityNotFoundDomainException;
 import com.citamedica.backend.exception.domain.InvalidPhoneNumberException;
+import com.citamedica.backend.exception.domain.MedicalDocumentException;
 import com.citamedica.backend.exception.domain.InvalidDomainOperationException;
+import com.citamedica.backend.exception.domain.DoctorNotQualifiedException;
+import com.citamedica.backend.exception.domain.InvalidSpecialtyException;
+import com.citamedica.backend.exception.domain.InvoiceGenerationException;
 import com.citamedica.backend.exception.domain.NotificationException;
+import com.citamedica.backend.exception.domain.PaymentDeclinedException;
+import com.citamedica.backend.exception.domain.PaymentException;
+import com.citamedica.backend.exception.domain.ServiceCatalogException;
 import com.citamedica.backend.exception.domain.AvailabilityException;
 import com.citamedica.backend.exception.domain.ConflictingAppointmentException;
 import com.citamedica.backend.exception.domain.SlotUnavailableException;
@@ -97,11 +105,91 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(problem);
     }
 
+    @ExceptionHandler(ServiceCatalogException.class)
+    public ResponseEntity<ProblemDetail> handleServiceCatalog(ServiceCatalogException ex) {
+        log.warn("Service catalog: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Service Catalog Error");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(InvalidSpecialtyException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidSpecialty(InvalidSpecialtyException ex) {
+        log.warn("Invalid specialty: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Invalid Specialty");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(DoctorNotQualifiedException.class)
+    public ResponseEntity<ProblemDetail> handleDoctorNotQualified(DoctorNotQualifiedException ex) {
+        log.warn("Doctor not qualified: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Doctor Not Qualified");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<ProblemDetail> handlePayment(PaymentException ex) {
+        log.warn("Payment error: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Payment Error");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(PaymentDeclinedException.class)
+    public ResponseEntity<ProblemDetail> handlePaymentDeclined(PaymentDeclinedException ex) {
+        log.warn("Payment declined: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Payment Declined");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(AnalyticsException.class)
+    public ResponseEntity<ProblemDetail> handleAnalytics(AnalyticsException ex) {
+        log.warn("Analytics/reporting: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Analytics Error");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(InvoiceGenerationException.class)
+    public ResponseEntity<ProblemDetail> handleInvoiceGeneration(InvoiceGenerationException ex) {
+        log.warn("Invoice generation: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Invoice Error");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
     @ExceptionHandler(InvalidPhoneNumberException.class)
     public ResponseEntity<ProblemDetail> handleInvalidPhone(InvalidPhoneNumberException ex) {
         log.warn("Invalid phone for notifications: {}", ex.getMessage());
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Invalid Phone Number");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(MedicalDocumentException.class)
+    public ResponseEntity<ProblemDetail> handleMedicalDocument(MedicalDocumentException ex) {
+        log.warn("Medical document: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Medical Document Error");
         problem.setProperty("timestamp", Instant.now());
         problem.setProperty("correlationId", MDC.get("correlationId"));
         return ResponseEntity.badRequest().body(problem);

@@ -19,10 +19,13 @@ public class NotificationAdapter implements NotificationPort {
     @Override
     public void sendEmail(EmailNotification notification) {
         if (!notificationsEnabled) {
-            log.info("Email notification (stub): to={}, subject={}, body={}", 
-                notification.getTo(), 
-                notification.getSubject(),
-                notification.getBody());
+            int attachLen = notification.getAttachmentContent() != null ? notification.getAttachmentContent().length : 0;
+            log.info("Email notification (stub): to={}, subject={}, body={}, attachmentBytes={}, attachmentName={}",
+                    notification.getTo(),
+                    notification.getSubject(),
+                    notification.getBody(),
+                    attachLen,
+                    notification.getAttachmentFileName());
             return;
         }
         

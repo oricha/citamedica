@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -71,7 +72,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/patients/*/notification-preferences").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/patients/*/notification-preferences").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/patients/*/notifications").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
-                        
+
+                        .requestMatchers(HttpMethod.POST, "/api/v1/patients/*/portal-access").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/patients/*/portal-access").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/wait-list").hasAnyRole("STAFF", "DOCTOR", "ADMIN", "CLINIC_MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/wait-list/*").hasAnyRole("STAFF", "DOCTOR", "ADMIN", "CLINIC_MANAGER")
+
                         // Doctor endpoints - require CLINIC_MANAGER or ADMIN roles
                         .requestMatchers(HttpMethod.GET, "/api/v1/doctors").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF")
                         .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF")
@@ -94,7 +101,44 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/doctors/*/availability-blocks/**").hasAnyRole("CLINIC_MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/*/availability-blocks/**").hasAnyRole("CLINIC_MANAGER", "ADMIN")
 
+                        .requestMatchers(HttpMethod.GET, "/api/v1/specialties").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF", "DOCTOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/clinics/*/services").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clinics/*/services").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF", "DOCTOR")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/clinics/*/services/*").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/clinics/*/services/*").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/doctors/*/specialties").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/specialties").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF", "DOCTOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/specialty-surcharges").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/clinics/*/pricing-rules").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/services/*/price").authenticated()
+
+                        .requestMatchers(HttpMethod.POST, "/api/v1/payments").hasAnyRole("STAFF", "CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/payments/*").hasAnyRole("STAFF", "CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/patients/*/payments").hasAnyRole("STAFF", "DOCTOR", "CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/patients/*/invoices").hasAnyRole("STAFF", "DOCTOR", "CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/patients/*/balance").hasAnyRole("STAFF", "DOCTOR", "CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/invoices/*/pdf").hasAnyRole("STAFF", "CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/invoices/*").hasAnyRole("STAFF", "DOCTOR", "CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/refunds").hasAnyRole("STAFF", "CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/refunds/*").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/refunds/*").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clinics/*/outstanding-balances").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clinics/*/reports/revenue").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clinics/*/analytics/**").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clinics/*/dashboard").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/dashboard").hasAnyRole("DOCTOR", "CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/clinics/*/reports").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clinics/*/reports").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clinics/*/reports/**").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reports/*").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/clinics/*/scheduled-reports").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/clinics/*/scheduled-reports").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+
                         .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/available-slots/**").authenticated()
+
+                        .requestMatchers("/api/v1/portal/**").hasRole("PATIENT")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -113,19 +157,30 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+    public UserDetailsService userDetailsService(
+            PasswordEncoder passwordEncoder,
+            PatientPortalAccountLookup patientPortalAccountLookup) {
         String[] roles = Arrays.stream(authRoles.split(","))
                 .map(String::trim)
                 .filter(role -> !role.isBlank())
                 .collect(Collectors.toList())
                 .toArray(new String[0]);
 
-        UserDetails user = User.withUsername(authUsername)
+        UserDetails staffUser = User.withUsername(authUsername)
                 .password(passwordEncoder.encode(authPassword))
                 .roles(roles.length > 0 ? roles : new String[]{"ADMIN"})
                 .build();
 
-        return new InMemoryUserDetailsManager(user);
+        InMemoryUserDetailsManager staff = new InMemoryUserDetailsManager(staffUser);
+
+        return username -> {
+            try {
+                return staff.loadUserByUsername(username);
+            } catch (UsernameNotFoundException ex) {
+                return patientPortalAccountLookup.findActivePortalUser(username)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            }
+        };
     }
 
     @Bean

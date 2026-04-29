@@ -20,6 +20,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.web.server.ResponseStatusException;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
 @RestController
 @RequestMapping("/api/v1/appointments")
 public class AppointmentController {
@@ -59,9 +63,15 @@ public class AppointmentController {
     @PostMapping
     public ResponseEntity<AppointmentResponse> createAppointment(
             @Valid @RequestBody CreateAppointmentRequest request) {
-        
+
         LocalDateTime startAt = LocalDateTime.parse(request.getStartAt());
-        LocalDateTime endAt = LocalDateTime.parse(request.getEndAt());
+        LocalDateTime endAt = null;
+        if (request.getServiceId() == null) {
+            if (request.getEndAt() == null || request.getEndAt().isBlank()) {
+                throw new ResponseStatusException(BAD_REQUEST, "endAt is required when serviceId is omitted");
+            }
+            endAt = LocalDateTime.parse(request.getEndAt());
+        }
 
         Appointment appointment = createAppointmentUseCase.execute(
                 request.getDoctorId(),
@@ -71,7 +81,8 @@ public class AppointmentController {
                 endAt,
                 request.getCalBookingId(),
                 request.getNotes(),
-                request.getTimeSlotId()
+                request.getTimeSlotId(),
+                request.getServiceId()
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(AppointmentResponse.from(appointment));

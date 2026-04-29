@@ -44,6 +44,9 @@ public class Doctor {
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DoctorAvailabilityBlock> availabilityBlocks = new ArrayList<>();
 
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DoctorSpecialty> doctorSpecialties = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -93,6 +96,13 @@ public class Doctor {
     public void addAvailabilityBlock(DoctorAvailabilityBlock block) {
         availabilityBlocks.add(block);
         block.setDoctor(this);
+    }
+
+    public List<DoctorSpecialty> getDoctorSpecialties() { return doctorSpecialties; }
+
+    public void addDoctorSpecialty(DoctorSpecialty ds) {
+        doctorSpecialties.add(ds);
+        ds.setDoctor(this);
     }
 
     public Optional<DoctorAvailabilityConfiguration> getAvailabilityConfig(ScheduleDayOfWeek day) {

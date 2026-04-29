@@ -44,6 +44,11 @@ app:
     allowed-origins: http://localhost:3000,http://localhost:3001
   notifications:
     enabled: false
+  analytics:
+    scheduled-reports:
+      enabled: false
+    refresh-views:
+      enabled: false
   availability:
     enforced: false
     sync:

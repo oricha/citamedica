@@ -2,6 +2,7 @@ package com.citamedica.backend.domain.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -29,6 +30,9 @@ public class Clinic {
     @OneToMany(mappedBy = "clinic")
     private List<Doctor> doctors;
 
+    @OneToMany(mappedBy = "clinic", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ClinicOffering> offerings = new ArrayList<>();
+
     // Constructors, getters, setters
     public Clinic() {}
 
@@ -55,4 +59,6 @@ public class Clinic {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public List<Doctor> getDoctors() { return doctors; }
     public void setDoctors(List<Doctor> doctors) { this.doctors = doctors; }
+    public List<ClinicOffering> getOfferings() { return offerings; }
+    public void setOfferings(List<ClinicOffering> offerings) { this.offerings = offerings; }
 }

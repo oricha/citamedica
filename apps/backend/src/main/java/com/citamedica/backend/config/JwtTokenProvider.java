@@ -46,6 +46,9 @@ public class JwtTokenProvider {
         if (principal instanceof UserPrincipal userPrincipal) {
             username = userPrincipal.getUsername();
             userId = userPrincipal.getId();
+        } else if (principal instanceof PatientUserDetails patientDetails) {
+            username = patientDetails.getUsername();
+            userId = patientDetails.getPatientId();
         } else if (principal instanceof UserDetails userDetails) {
             username = userDetails.getUsername();
             userId = null;

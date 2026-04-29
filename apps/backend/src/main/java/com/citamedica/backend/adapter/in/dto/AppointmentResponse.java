@@ -23,6 +23,9 @@ public class AppointmentResponse {
     private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long serviceId;
+    private String serviceName;
+    private java.math.BigDecimal serviceBasePrice;
 
     // Constructors
     public AppointmentResponse() {}
@@ -31,7 +34,8 @@ public class AppointmentResponse {
                               String doctorSpecialty, Long patientId, String patientName,
                               String patientEmail, String calBookingId, String type,
                               AppointmentStatus status, LocalDateTime startAt, LocalDateTime endAt,
-                              String notes, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                              String notes, LocalDateTime createdAt, LocalDateTime updatedAt,
+                              Long serviceId, String serviceName, java.math.BigDecimal serviceBasePrice) {
         this.id = id;
         this.clinicId = clinicId;
         this.doctorId = doctorId;
@@ -48,10 +52,21 @@ public class AppointmentResponse {
         this.notes = notes;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.serviceId = serviceId;
+        this.serviceName = serviceName;
+        this.serviceBasePrice = serviceBasePrice;
     }
 
     // Factory method
     public static AppointmentResponse from(Appointment appointment) {
+        Long svcId = null;
+        String svcName = null;
+        java.math.BigDecimal svcPrice = null;
+        if (appointment.getClinicOffering() != null) {
+            svcId = appointment.getClinicOffering().getId();
+            svcName = appointment.getClinicOffering().getName();
+            svcPrice = appointment.getClinicOffering().getBasePrice();
+        }
         return new AppointmentResponse(
             appointment.getId(),
             appointment.getClinic() != null ? appointment.getClinic().getId() : null,
@@ -68,7 +83,10 @@ public class AppointmentResponse {
             appointment.getEndAt(),
             appointment.getNotes(),
             appointment.getCreatedAt(),
-            appointment.getUpdatedAt()
+            appointment.getUpdatedAt(),
+            svcId,
+            svcName,
+            svcPrice
         );
     }
 
@@ -199,5 +217,29 @@ public class AppointmentResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Long getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(Long serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public java.math.BigDecimal getServiceBasePrice() {
+        return serviceBasePrice;
+    }
+
+    public void setServiceBasePrice(java.math.BigDecimal serviceBasePrice) {
+        this.serviceBasePrice = serviceBasePrice;
     }
 }

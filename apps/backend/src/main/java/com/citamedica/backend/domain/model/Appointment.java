@@ -44,6 +44,13 @@ public class Appointment {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_id")
+    private ClinicOffering clinicOffering;
+
+    @Column(name = "total_amount", precision = 12, scale = 2)
+    private java.math.BigDecimal totalAmount;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -88,4 +95,8 @@ public class Appointment {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public ClinicOffering getClinicOffering() { return clinicOffering; }
+    public void setClinicOffering(ClinicOffering clinicOffering) { this.clinicOffering = clinicOffering; }
+    public java.math.BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(java.math.BigDecimal totalAmount) { this.totalAmount = totalAmount; }
 }
