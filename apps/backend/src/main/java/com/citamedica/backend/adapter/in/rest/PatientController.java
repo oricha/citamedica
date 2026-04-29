@@ -2,8 +2,11 @@ package com.citamedica.backend.adapter.in.rest;
 
 import com.citamedica.backend.adapter.in.dto.CreatePatientRequest;
 import com.citamedica.backend.adapter.in.dto.PatientResponse;
+import com.citamedica.backend.application.usecase.CreatePatientUseCase;
+import com.citamedica.backend.application.usecase.GetAllPatientsUseCase;
+import com.citamedica.backend.application.usecase.GetPatientByIdUseCase;
+import com.citamedica.backend.application.usecase.UpdatePatientUseCase;
 import com.citamedica.backend.domain.model.Patient;
-import com.citamedica.backend.application.PatientService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,15 +23,25 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RequestMapping("/api/v1/patients")
 public class PatientController {
 
-    private final PatientService patientService;
+    private final CreatePatientUseCase createPatientUseCase;
+    private final GetAllPatientsUseCase getAllPatientsUseCase;
+    private final GetPatientByIdUseCase getPatientByIdUseCase;
+    private final UpdatePatientUseCase updatePatientUseCase;
 
-    public PatientController(PatientService patientService) {
-        this.patientService = patientService;
+    public PatientController(
+            CreatePatientUseCase createPatientUseCase,
+            GetAllPatientsUseCase getAllPatientsUseCase,
+            GetPatientByIdUseCase getPatientByIdUseCase,
+            UpdatePatientUseCase updatePatientUseCase) {
+        this.createPatientUseCase = createPatientUseCase;
+        this.getAllPatientsUseCase = getAllPatientsUseCase;
+        this.getPatientByIdUseCase = getPatientByIdUseCase;
+        this.updatePatientUseCase = updatePatientUseCase;
     }
 
     @PostMapping
     public ResponseEntity<PatientResponse> createPatient(@Valid @RequestBody CreatePatientRequest request) {
-        Patient patient = patientService.createPatient(
+        Patient patient = createPatientUseCase.execute(
                 request.getFullName(),
                 request.getEmail(),
                 request.getPhone(),
@@ -40,7 +53,7 @@ public class PatientController {
 
     @GetMapping
     public ResponseEntity<List<PatientResponse>> getAllPatients() {
-        List<Patient> patients = patientService.findAll();
+        List<Patient> patients = getAllPatientsUseCase.execute();
         List<PatientResponse> response = patients.stream()
                 .map(PatientResponse::from)
                 .collect(Collectors.toList());
@@ -49,7 +62,7 @@ public class PatientController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PatientResponse> getPatient(@PathVariable Long id) {
-        Patient patient = patientService.findById(id)
+        Patient patient = getPatientByIdUseCase.execute(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Patient not found"));
         return ResponseEntity.ok(PatientResponse.from(patient));
     }
@@ -58,7 +71,7 @@ public class PatientController {
     public ResponseEntity<PatientResponse> updatePatient(
             @PathVariable Long id,
             @Valid @RequestBody CreatePatientRequest request) {
-        Patient patient = patientService.updatePatient(
+        Patient patient = updatePatientUseCase.execute(
                 id,
                 request.getFullName(),
                 request.getEmail(),

@@ -1,6 +1,9 @@
 package com.citamedica.backend.adapter.in.rest;
 
 import com.citamedica.backend.adapter.out.integration.calcom.CalcomApiException;
+import com.citamedica.backend.exception.domain.DuplicateEntityException;
+import com.citamedica.backend.exception.domain.EntityNotFoundDomainException;
+import com.citamedica.backend.exception.domain.InvalidDomainOperationException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -46,6 +49,45 @@ public class GlobalExceptionHandler {
         problem.setProperty("timestamp", Instant.now());
         problem.setProperty("correlationId", MDC.get("correlationId"));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(EntityNotFoundDomainException.class)
+    public ResponseEntity<ProblemDetail> handleDomainNotFound(EntityNotFoundDomainException ex) {
+        log.warn("Domain entity not found: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+        problem.setTitle("Resource Not Found");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(DuplicateEntityException.class)
+    public ResponseEntity<ProblemDetail> handleDuplicateEntity(DuplicateEntityException ex) {
+        log.warn("Duplicate entity: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                ex.getMessage()
+        );
+        problem.setTitle("Conflict");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
+    @ExceptionHandler(InvalidDomainOperationException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidDomainOperation(InvalidDomainOperationException ex) {
+        log.warn("Invalid domain operation: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problem.setTitle("Validation Error");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
     }
 
     @ExceptionHandler(CalcomApiException.class)

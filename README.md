@@ -228,6 +228,18 @@ With **`make dev`** you should see `postgres-cal`, `landing`, and `calcom` in Do
 
 The `.env` file contains all configuration. Here are the key variables:
 
+### Database Migrations (Flyway)
+
+- Migrations live in `apps/backend/src/main/resources/db/migration`.
+- Current baseline scripts: `V1` to `V7`.
+- Migrations run automatically on backend startup (`spring.flyway.enabled=true` in `application.yml`).
+- Run manually from backend module:
+
+```bash
+cd apps/backend
+./gradlew flywayMigrate
+```
+
 #### Backend Configuration
 
 ```bash

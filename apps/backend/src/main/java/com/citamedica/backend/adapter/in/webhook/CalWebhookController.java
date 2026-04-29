@@ -1,7 +1,7 @@
 package com.citamedica.backend.adapter.in.webhook;
 
+import com.citamedica.backend.application.usecase.ProcessBookingEventUseCase;
 import com.citamedica.backend.adapter.out.integration.calcom.CalcomSignatureValidator;
-import com.citamedica.backend.adapter.out.integration.calcom.CalcomWebhookHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,11 +24,13 @@ public class CalWebhookController {
     private static final Logger logger = LoggerFactory.getLogger(CalWebhookController.class);
 
     private final CalcomSignatureValidator signatureValidator;
-    private final CalcomWebhookHandler webhookHandler;
+    private final ProcessBookingEventUseCase processBookingEventUseCase;
 
-    public CalWebhookController(CalcomSignatureValidator signatureValidator, CalcomWebhookHandler webhookHandler) {
+    public CalWebhookController(
+            CalcomSignatureValidator signatureValidator,
+            ProcessBookingEventUseCase processBookingEventUseCase) {
         this.signatureValidator = signatureValidator;
-        this.webhookHandler = webhookHandler;
+        this.processBookingEventUseCase = processBookingEventUseCase;
     }
 
     /**
@@ -58,7 +60,7 @@ public class CalWebhookController {
 
         // Process webhook
         try {
-            webhookHandler.handle(payload);
+            processBookingEventUseCase.execute(payload);
             logger.info("Webhook processed successfully - correlationId: {}", correlationId);
             return ResponseEntity.ok(new WebhookResponse(true, "Webhook processed"));
         } catch (Exception e) {

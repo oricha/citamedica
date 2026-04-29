@@ -3,8 +3,11 @@ package com.citamedica.backend.adapter.in.rest;
 import com.citamedica.backend.adapter.in.dto.AppointmentResponse;
 import com.citamedica.backend.adapter.in.dto.CreateAppointmentRequest;
 import com.citamedica.backend.adapter.in.dto.UpdateAppointmentRequest;
+import com.citamedica.backend.application.usecase.CreateAppointmentUseCase;
+import com.citamedica.backend.application.usecase.DeleteAppointmentUseCase;
+import com.citamedica.backend.application.usecase.GetAppointmentsByDoctorAndDateUseCase;
+import com.citamedica.backend.application.usecase.UpdateAppointmentUseCase;
 import com.citamedica.backend.domain.model.Appointment;
-import com.citamedica.backend.application.AppointmentService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +24,20 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/appointments")
 public class AppointmentController {
 
-    private final AppointmentService appointmentService;
+    private final GetAppointmentsByDoctorAndDateUseCase getAppointmentsByDoctorAndDateUseCase;
+    private final CreateAppointmentUseCase createAppointmentUseCase;
+    private final UpdateAppointmentUseCase updateAppointmentUseCase;
+    private final DeleteAppointmentUseCase deleteAppointmentUseCase;
 
-    public AppointmentController(AppointmentService appointmentService) {
-        this.appointmentService = appointmentService;
+    public AppointmentController(
+            GetAppointmentsByDoctorAndDateUseCase getAppointmentsByDoctorAndDateUseCase,
+            CreateAppointmentUseCase createAppointmentUseCase,
+            UpdateAppointmentUseCase updateAppointmentUseCase,
+            DeleteAppointmentUseCase deleteAppointmentUseCase) {
+        this.getAppointmentsByDoctorAndDateUseCase = getAppointmentsByDoctorAndDateUseCase;
+        this.createAppointmentUseCase = createAppointmentUseCase;
+        this.updateAppointmentUseCase = updateAppointmentUseCase;
+        this.deleteAppointmentUseCase = deleteAppointmentUseCase;
     }
 
     @GetMapping
@@ -32,7 +45,7 @@ public class AppointmentController {
             @RequestParam Long doctorId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         
-        List<Appointment> appointments = appointmentService.findByDoctorIdAndDate(doctorId, date);
+        List<Appointment> appointments = getAppointmentsByDoctorAndDateUseCase.execute(doctorId, date);
         
         // Sort by start time
         List<AppointmentResponse> response = appointments.stream()
@@ -50,7 +63,7 @@ public class AppointmentController {
         LocalDateTime startAt = LocalDateTime.parse(request.getStartAt());
         LocalDateTime endAt = LocalDateTime.parse(request.getEndAt());
 
-        Appointment appointment = appointmentService.createAppointment(
+        Appointment appointment = createAppointmentUseCase.execute(
                 request.getDoctorId(),
                 request.getPatientId(),
                 request.getType(),
@@ -69,7 +82,7 @@ public class AppointmentController {
             @RequestBody UpdateAppointmentRequest request) {
         LocalDateTime startAt = request.getStartAt() != null ? LocalDateTime.parse(request.getStartAt()) : null;
         LocalDateTime endAt = request.getEndAt() != null ? LocalDateTime.parse(request.getEndAt()) : null;
-        Appointment updated = appointmentService.updateAppointment(
+        Appointment updated = updateAppointmentUseCase.execute(
                 id,
                 request.getType(),
                 startAt,
@@ -82,7 +95,7 @@ public class AppointmentController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAppointment(@PathVariable Long id) {
-        appointmentService.deleteAppointment(id);
+        deleteAppointmentUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }
 }
