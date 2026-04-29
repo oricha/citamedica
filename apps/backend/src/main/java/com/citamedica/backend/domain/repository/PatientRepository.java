@@ -12,6 +12,8 @@ public interface PatientRepository {
 
     Optional<Patient> findByEmail(String email);
 
+    Optional<Patient> findByEmailIgnoreCase(String email);
+
     Patient save(Patient entity);
 
     void deleteById(Long id);

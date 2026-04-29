@@ -5,6 +5,7 @@ import com.citamedica.backend.exception.domain.AnalyticsException;
 import com.citamedica.backend.exception.domain.DuplicateEntityException;
 import com.citamedica.backend.exception.domain.EntityNotFoundDomainException;
 import com.citamedica.backend.exception.domain.InvalidPhoneNumberException;
+import com.citamedica.backend.exception.domain.MedicalDocumentException;
 import com.citamedica.backend.exception.domain.InvalidDomainOperationException;
 import com.citamedica.backend.exception.domain.DoctorNotQualifiedException;
 import com.citamedica.backend.exception.domain.InvalidSpecialtyException;
@@ -179,6 +180,16 @@ public class GlobalExceptionHandler {
         log.warn("Invalid phone for notifications: {}", ex.getMessage());
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Invalid Phone Number");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(MedicalDocumentException.class)
+    public ResponseEntity<ProblemDetail> handleMedicalDocument(MedicalDocumentException ex) {
+        log.warn("Medical document: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Medical Document Error");
         problem.setProperty("timestamp", Instant.now());
         problem.setProperty("correlationId", MDC.get("correlationId"));
         return ResponseEntity.badRequest().body(problem);

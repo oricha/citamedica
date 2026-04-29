@@ -4,6 +4,8 @@ import com.citamedica.backend.adapter.out.persistence.jpa.AppointmentJpaReposito
 import com.citamedica.backend.domain.model.Appointment;
 import com.citamedica.backend.domain.model.AppointmentStatus;
 import com.citamedica.backend.domain.repository.AppointmentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -40,6 +42,11 @@ public class AppointmentRepositoryAdapter implements AppointmentRepository {
     @Override
     public List<Appointment> findByStartAtBetween(LocalDateTime start, LocalDateTime end) {
         return jpa.findByStartAtBetween(start, end);
+    }
+
+    @Override
+    public Page<Appointment> findByPatientIdOrderByStartAtDesc(Long patientId, Pageable pageable) {
+        return jpa.findByPatient_IdOrderByStartAtDesc(patientId, pageable);
     }
 
     @Override

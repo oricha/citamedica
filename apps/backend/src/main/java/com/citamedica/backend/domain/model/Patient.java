@@ -35,6 +35,12 @@ public class Patient {
     @Column(name = "language_preference")
     private String languagePreference = "es";
 
+    @Column(name = "portal_password_hash")
+    private String portalPasswordHash;
+
+    @Column(name = "portal_access_enabled", nullable = false)
+    private boolean portalAccessEnabled = false;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -63,6 +69,10 @@ public class Patient {
     public void setInsurancePlan(String insurancePlan) { this.insurancePlan = insurancePlan; }
     public String getLanguagePreference() { return languagePreference; }
     public void setLanguagePreference(String languagePreference) { this.languagePreference = languagePreference; }
+    public String getPortalPasswordHash() { return portalPasswordHash; }
+    public void setPortalPasswordHash(String portalPasswordHash) { this.portalPasswordHash = portalPasswordHash; }
+    public boolean isPortalAccessEnabled() { return portalAccessEnabled; }
+    public void setPortalAccessEnabled(boolean portalAccessEnabled) { this.portalAccessEnabled = portalAccessEnabled; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 

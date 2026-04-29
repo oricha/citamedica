@@ -8,6 +8,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 public interface AppointmentRepository {
     Optional<Appointment> findById(Long id);
 
@@ -16,6 +19,8 @@ public interface AppointmentRepository {
     List<Appointment> findByCalBookingId(String calBookingId);
 
     List<Appointment> findByStartAtBetween(LocalDateTime start, LocalDateTime end);
+
+    Page<Appointment> findByPatientIdOrderByStartAtDesc(Long patientId, Pageable pageable);
 
     long countOverlappingScheduled(Long doctorId, LocalDateTime startAt, LocalDateTime endAt);
 

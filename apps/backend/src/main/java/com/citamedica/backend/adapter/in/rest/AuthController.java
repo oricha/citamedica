@@ -1,18 +1,11 @@
 package com.citamedica.backend.adapter.in.rest;
 
 import com.citamedica.backend.config.JwtTokenProvider;
-import com.citamedica.backend.config.UserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -26,6 +19,15 @@ public class AuthController {
         this.tokenProvider = tokenProvider;
     }
 
+    @PostMapping("/patient/login")
+    public ResponseEntity<LoginResponse> patientLogin(@RequestBody PatientLoginRequest request) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+        String token = tokenProvider.generateToken(authentication);
+        return ResponseEntity.ok(new LoginResponse(token));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
@@ -34,6 +36,16 @@ public class AuthController {
 
         String token = tokenProvider.generateToken(authentication);
         return ResponseEntity.ok(new LoginResponse(token));
+    }
+
+    public static class PatientLoginRequest {
+        private String email;
+        private String password;
+
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
     }
 
     public static class LoginRequest {

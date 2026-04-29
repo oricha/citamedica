@@ -14,6 +14,7 @@ import com.citamedica.backend.domain.service.NotificationPreferenceDomainService
 import com.citamedica.backend.domain.service.PatientDomainService;
 import com.citamedica.backend.domain.service.ServiceCatalogDomainService;
 import com.citamedica.backend.domain.service.TimeSlotGenerationService;
+import com.citamedica.backend.domain.service.medical.DrugInteractionCheckService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -84,5 +85,10 @@ public class DomainServiceConfig {
     @Bean
     public PatientAnalyticsService patientAnalyticsService(AnalyticsRepository analyticsRepository) {
         return new PatientAnalyticsService(analyticsRepository);
+    }
+
+    @Bean
+    public DrugInteractionCheckService drugInteractionCheckService() {
+        return new DrugInteractionCheckService();
     }
 }

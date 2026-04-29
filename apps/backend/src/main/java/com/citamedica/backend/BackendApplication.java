@@ -1,6 +1,7 @@
 package com.citamedica.backend;
 
 import com.citamedica.backend.config.AvailabilityProperties;
+import com.citamedica.backend.config.MedicalDocumentStorageProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -12,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaRepositories(basePackages = "com.citamedica.backend.adapter.out.persistence.jpa")
 @EnableRetry
 @EnableScheduling
-@EnableConfigurationProperties(AvailabilityProperties.class)
+@EnableConfigurationProperties({AvailabilityProperties.class, MedicalDocumentStorageProperties.class})
 public class BackendApplication {
 
 	public static void main(String[] args) {

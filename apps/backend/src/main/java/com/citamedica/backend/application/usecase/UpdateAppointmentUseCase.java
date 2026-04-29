@@ -14,6 +14,7 @@ import com.citamedica.backend.domain.repository.TimeSlotRepository;
 import com.citamedica.backend.domain.service.AppointmentAvailabilityValidator;
 import com.citamedica.backend.domain.service.AppointmentDomainService;
 import com.citamedica.backend.domain.service.AvailabilityConflictDetectionService;
+import com.citamedica.backend.application.medical.RecordAppointmentCompletionMedicalHistoryUseCase;
 import com.citamedica.backend.exception.domain.ConflictingAppointmentException;
 import com.citamedica.backend.exception.domain.EntityNotFoundDomainException;
 import com.citamedica.backend.exception.domain.SlotUnavailableException;
@@ -37,6 +38,7 @@ public class UpdateAppointmentUseCase {
     private final AppointmentAvailabilityValidator appointmentAvailabilityValidator;
     private final AvailabilityConflictDetectionService availabilityConflictDetectionService;
     private final CreateInvoiceForAppointmentUseCase createInvoiceForAppointmentUseCase;
+    private final RecordAppointmentCompletionMedicalHistoryUseCase recordAppointmentCompletionMedicalHistoryUseCase;
 
     public UpdateAppointmentUseCase(
             AppointmentRepository appointmentRepository,
@@ -48,7 +50,8 @@ public class UpdateAppointmentUseCase {
             DoctorAvailabilityConfigurationRepository doctorAvailabilityConfigurationRepository,
             AppointmentAvailabilityValidator appointmentAvailabilityValidator,
             AvailabilityConflictDetectionService availabilityConflictDetectionService,
-            CreateInvoiceForAppointmentUseCase createInvoiceForAppointmentUseCase) {
+            CreateInvoiceForAppointmentUseCase createInvoiceForAppointmentUseCase,
+            RecordAppointmentCompletionMedicalHistoryUseCase recordAppointmentCompletionMedicalHistoryUseCase) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentDomainService = appointmentDomainService;
         this.sendAppointmentChangeNotificationUseCase = sendAppointmentChangeNotificationUseCase;
@@ -59,6 +62,7 @@ public class UpdateAppointmentUseCase {
         this.appointmentAvailabilityValidator = appointmentAvailabilityValidator;
         this.availabilityConflictDetectionService = availabilityConflictDetectionService;
         this.createInvoiceForAppointmentUseCase = createInvoiceForAppointmentUseCase;
+        this.recordAppointmentCompletionMedicalHistoryUseCase = recordAppointmentCompletionMedicalHistoryUseCase;
     }
 
     @Transactional
@@ -127,6 +131,7 @@ public class UpdateAppointmentUseCase {
 
         if (saved.getStatus() == AppointmentStatus.COMPLETED && previousStatus != AppointmentStatus.COMPLETED) {
             createInvoiceForAppointmentUseCase.execute(saved.getId());
+            recordAppointmentCompletionMedicalHistoryUseCase.execute(saved);
         }
 
         sendAppointmentChangeNotificationUseCase.execute(saved);

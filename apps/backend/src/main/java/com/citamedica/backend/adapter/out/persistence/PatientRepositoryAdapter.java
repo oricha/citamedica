@@ -33,6 +33,11 @@ public class PatientRepositoryAdapter implements PatientRepository {
     }
 
     @Override
+    public Optional<Patient> findByEmailIgnoreCase(String email) {
+        return jpa.findByEmailIgnoreCase(email);
+    }
+
+    @Override
     public Patient save(Patient entity) {
         return jpa.save(entity);
     }
