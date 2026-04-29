@@ -5,12 +5,14 @@ import com.citamedica.backend.exception.domain.DuplicateEntityException;
 import com.citamedica.backend.exception.domain.EntityNotFoundDomainException;
 import com.citamedica.backend.exception.domain.InvalidDomainOperationException;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -132,6 +134,32 @@ public class GlobalExceptionHandler {
         problem.setProperty("timestamp", Instant.now());
         problem.setProperty("correlationId", MDC.get("correlationId"));
         return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ProblemDetail> handleResponseStatus(ResponseStatusException ex) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                status,
+                ex.getReason() != null ? ex.getReason() : "Request failed"
+        );
+        problem.setTitle(status.getReasonPhrase());
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.status(status).body(problem);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ProblemDetail> handleAuthenticationException(AuthenticationException ex) {
+        log.warn("Authentication failed: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED,
+                "Invalid credentials"
+        );
+        problem.setTitle("Unauthorized");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
     }
 
     @ExceptionHandler(Exception.class)

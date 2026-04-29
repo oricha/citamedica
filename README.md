@@ -213,6 +213,9 @@ make status
 ```
 
 With **`make dev`** you should see `postgres-cal`, `landing`, and `calcom` in Docker. The backend appears only after **`make backend-local`**. With **`make dev-docker`**, you should also see `postgres-clinic` and `backend-api`.
+In full Docker mode, Redis services are also available:
+- `citamedica-redis` on `localhost:6379`
+- `calcom-redis` on `localhost:6380`
 
 ### 6. Access the applications
 
@@ -341,6 +344,17 @@ To enable automatic appointment synchronization from Cal.com to CitaMedica:
 2. Check backend logs: `make backend-logs`
 3. Look for webhook processing logs with correlation IDs
 4. Verify the appointment was created: `curl http://localhost:8080/api/v1/appointments?doctorId=1&date=2025-10-27`
+
+### Webhook Signature Verification
+
+- Endpoint: `POST /webhooks/cal`
+- Required header: `x-cal-signature`
+- Expected format: `sha256=<hmac_hex>`
+- HMAC algorithm: `HMAC-SHA256` using the shared secret in `CALCOM_WEBHOOK_SECRET`
+- Behavior:
+  - Missing signature: `401 Unauthorized` with `{\"received\":false,\"message\":\"Missing signature\"}`
+  - Invalid signature: `401 Unauthorized` with `{\"received\":false,\"message\":\"Invalid signature\"}`
+  - Valid signature: webhook is processed and returns `200 OK`
 
 ### Webhook Payload Example
 
@@ -567,6 +581,18 @@ Most endpoints require JWT authentication. Include the token in the Authorizatio
 Authorization: Bearer <your-jwt-token>
 ```
 
+Get a JWT token from:
+
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+
 ### Endpoints
 
 #### Patients
@@ -577,13 +603,11 @@ POST /api/v1/patients
 Content-Type: application/json
 
 {
-  "firstName": "John",
-  "lastName": "Doe",
+  "fullName": "John Doe",
   "email": "john.doe@example.com",
   "phone": "+34 600 000 000",
-  "dateOfBirth": "1990-01-15",
-  "insuranceProvider": "Sanitas",
-  "insuranceNumber": "SAN123456"
+  "birthDate": "1990-01-15",
+  "insurancePlan": "Sanitas"
 }
 ```
 
@@ -591,13 +615,11 @@ Response: `201 Created`
 ```json
 {
   "id": 1,
-  "firstName": "John",
-  "lastName": "Doe",
+  "fullName": "John Doe",
   "email": "john.doe@example.com",
   "phone": "+34 600 000 000",
-  "dateOfBirth": "1990-01-15",
-  "insuranceProvider": "Sanitas",
-  "insuranceNumber": "SAN123456"
+  "birthDate": "1990-01-15",
+  "insurancePlan": "Sanitas"
 }
 ```
 
@@ -605,7 +627,7 @@ Response: `201 Created`
 
 **List Doctors by Clinic**
 ```http
-GET /api/v1/doctors?clinicId=1
+GET /api/v1/doctors?clinic=1
 ```
 
 Response: `200 OK`
@@ -613,8 +635,9 @@ Response: `200 OK`
 [
   {
     "id": 1,
-    "firstName": "María",
-    "lastName": "García López",
+    "clinicId": 1,
+    "clinicName": "Clinica Demo",
+    "fullName": "María García López",
     "specialty": "Cardiología",
     "email": "maria.garcia@clinicademo.com",
     "phone": "+34 612 345 678",
@@ -671,7 +694,7 @@ Content-Type: application/json
 ```http
 POST /webhooks/cal
 Content-Type: application/json
-X-Cal-Signature-256: <hmac-signature>
+x-cal-signature: sha256=<hmac-signature>
 
 {
   "triggerEvent": "BOOKING_CREATED",

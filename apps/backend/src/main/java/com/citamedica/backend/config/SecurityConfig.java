@@ -12,6 +12,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -20,6 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -30,6 +35,15 @@ public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:3001}")
     private String[] allowedOrigins;
+
+    @Value("${app.security.auth.username:admin}")
+    private String authUsername;
+
+    @Value("${app.security.auth.password:admin123}")
+    private String authPassword;
+
+    @Value("${app.security.auth.roles:ADMIN}")
+    private String authRoles;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -82,6 +96,22 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+        String[] roles = Arrays.stream(authRoles.split(","))
+                .map(String::trim)
+                .filter(role -> !role.isBlank())
+                .collect(Collectors.toList())
+                .toArray(new String[0]);
+
+        UserDetails user = User.withUsername(authUsername)
+                .password(passwordEncoder.encode(authPassword))
+                .roles(roles.length > 0 ? roles : new String[]{"ADMIN"})
+                .build();
+
+        return new InMemoryUserDetailsManager(user);
     }
 
     @Bean
