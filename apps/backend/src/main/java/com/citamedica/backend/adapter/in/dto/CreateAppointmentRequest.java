@@ -16,8 +16,8 @@ public class CreateAppointmentRequest {
     
     @NotBlank(message = "Start time is required")
     private String startAt;
-    
-    @NotBlank(message = "End time is required")
+
+    /** Required when {@code serviceId} is omitted; ignored when a service is selected (end time is derived). */
     private String endAt;
     
     private String calBookingId;
@@ -26,6 +26,9 @@ public class CreateAppointmentRequest {
 
     /** Optional explicit slot id when {@code app.availability.enforced} is true. */
     private Long timeSlotId;
+
+    /** Optional clinic offering (service catalog); when set, duration and validation apply from catalog. */
+    private Long serviceId;
 
     // Constructors
     public CreateAppointmentRequest() {}
@@ -104,5 +107,13 @@ public class CreateAppointmentRequest {
 
     public void setTimeSlotId(Long timeSlotId) {
         this.timeSlotId = timeSlotId;
+    }
+
+    public Long getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(Long serviceId) {
+        this.serviceId = serviceId;
     }
 }

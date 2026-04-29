@@ -36,6 +36,7 @@ public class UpdateAppointmentUseCase {
     private final DoctorAvailabilityConfigurationRepository doctorAvailabilityConfigurationRepository;
     private final AppointmentAvailabilityValidator appointmentAvailabilityValidator;
     private final AvailabilityConflictDetectionService availabilityConflictDetectionService;
+    private final CreateInvoiceForAppointmentUseCase createInvoiceForAppointmentUseCase;
 
     public UpdateAppointmentUseCase(
             AppointmentRepository appointmentRepository,
@@ -46,7 +47,8 @@ public class UpdateAppointmentUseCase {
             DoctorAvailabilityBlockRepository doctorAvailabilityBlockRepository,
             DoctorAvailabilityConfigurationRepository doctorAvailabilityConfigurationRepository,
             AppointmentAvailabilityValidator appointmentAvailabilityValidator,
-            AvailabilityConflictDetectionService availabilityConflictDetectionService) {
+            AvailabilityConflictDetectionService availabilityConflictDetectionService,
+            CreateInvoiceForAppointmentUseCase createInvoiceForAppointmentUseCase) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentDomainService = appointmentDomainService;
         this.sendAppointmentChangeNotificationUseCase = sendAppointmentChangeNotificationUseCase;
@@ -56,6 +58,7 @@ public class UpdateAppointmentUseCase {
         this.doctorAvailabilityConfigurationRepository = doctorAvailabilityConfigurationRepository;
         this.appointmentAvailabilityValidator = appointmentAvailabilityValidator;
         this.availabilityConflictDetectionService = availabilityConflictDetectionService;
+        this.createInvoiceForAppointmentUseCase = createInvoiceForAppointmentUseCase;
     }
 
     @Transactional
@@ -69,6 +72,7 @@ public class UpdateAppointmentUseCase {
             Long timeSlotId) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundDomainException("Appointment not found: " + id));
+        AppointmentStatus previousStatus = appointment.getStatus();
 
         LocalDateTime effectiveStart = startAt != null ? startAt : appointment.getStartAt();
         LocalDateTime effectiveEnd = endAt != null ? endAt : appointment.getEndAt();
@@ -119,6 +123,10 @@ public class UpdateAppointmentUseCase {
         if (newLockedSlot != null) {
             newLockedSlot.markBooked(saved);
             timeSlotRepository.save(newLockedSlot);
+        }
+
+        if (saved.getStatus() == AppointmentStatus.COMPLETED && previousStatus != AppointmentStatus.COMPLETED) {
+            createInvoiceForAppointmentUseCase.execute(saved.getId());
         }
 
         sendAppointmentChangeNotificationUseCase.execute(saved);

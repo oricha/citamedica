@@ -25,6 +25,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=5m
   actuator:
     health:
       db:
@@ -124,6 +128,19 @@ app:
     sync:
       enabled: true
       fixed-delay-ms: 21600000
+  payment:
+    stripe:
+      secret-key: ${STRIPE_SECRET_KEY:}
+    reconciliation:
+      enabled: ${PAYMENT_RECONCILIATION_ENABLED:false}
+      cron: "0 0 2 * * *"
+  analytics:
+    scheduled-reports:
+      enabled: ${ANALYTICS_SCHEDULED_REPORTS_ENABLED:true}
+      cron: "0 0 6 * * *"
+    refresh-views:
+      enabled: ${ANALYTICS_REFRESH_VIEWS_ENABLED:false}
+      cron: "0 0 1 * * *"
 
 # Logging configuration
 logging:
