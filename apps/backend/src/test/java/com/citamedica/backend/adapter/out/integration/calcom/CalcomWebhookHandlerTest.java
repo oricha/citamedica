@@ -9,11 +9,11 @@ import com.citamedica.backend.domain.repository.AppointmentRepository;
 import com.citamedica.backend.domain.repository.DoctorRepository;
 import com.citamedica.backend.domain.repository.PatientRepository;
 import com.citamedica.backend.application.AuditService;
+import com.citamedica.backend.application.usecase.SyncCalComCalendarUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -46,7 +46,9 @@ class CalcomWebhookHandlerTest {
     @Mock
     private AuditService auditService;
 
-    @InjectMocks
+    @Mock
+    private SyncCalComCalendarUseCase syncCalComCalendarUseCase;
+
     private CalcomWebhookHandler webhookHandler;
 
     private ObjectMapper objectMapper;
@@ -62,7 +64,8 @@ class CalcomWebhookHandlerTest {
                 appointmentRepository,
                 doctorRepository,
                 patientRepository,
-                auditService
+                auditService,
+                syncCalComCalendarUseCase
         );
 
         testClinic = new Clinic();

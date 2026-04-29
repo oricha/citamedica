@@ -3,7 +3,12 @@ package com.citamedica.backend.adapter.in.rest;
 import com.citamedica.backend.adapter.out.integration.calcom.CalcomApiException;
 import com.citamedica.backend.exception.domain.DuplicateEntityException;
 import com.citamedica.backend.exception.domain.EntityNotFoundDomainException;
+import com.citamedica.backend.exception.domain.InvalidPhoneNumberException;
 import com.citamedica.backend.exception.domain.InvalidDomainOperationException;
+import com.citamedica.backend.exception.domain.NotificationException;
+import com.citamedica.backend.exception.domain.AvailabilityException;
+import com.citamedica.backend.exception.domain.ConflictingAppointmentException;
+import com.citamedica.backend.exception.domain.SlotUnavailableException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.HttpStatus;
@@ -92,6 +97,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(problem);
     }
 
+    @ExceptionHandler(InvalidPhoneNumberException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidPhone(InvalidPhoneNumberException ex) {
+        log.warn("Invalid phone for notifications: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Invalid Phone Number");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(NotificationException.class)
+    public ResponseEntity<ProblemDetail> handleNotificationException(NotificationException ex) {
+        log.error("Notification processing error: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+        problem.setTitle("Notification Service Error");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem);
+    }
+
     @ExceptionHandler(CalcomApiException.class)
     public ResponseEntity<ProblemDetail> handleCalcomApiException(CalcomApiException ex) {
         log.error("Cal.com API error: {}", ex.getMessage());
@@ -113,6 +138,36 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
         problem.setTitle("Validation Error");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(SlotUnavailableException.class)
+    public ResponseEntity<ProblemDetail> handleSlotUnavailable(SlotUnavailableException ex) {
+        log.warn("Slot unavailable: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Slot Unavailable");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
+    @ExceptionHandler(ConflictingAppointmentException.class)
+    public ResponseEntity<ProblemDetail> handleConflictAppointment(ConflictingAppointmentException ex) {
+        log.warn("Appointment conflict: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Scheduling Conflict");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("correlationId", MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
+    @ExceptionHandler(AvailabilityException.class)
+    public ResponseEntity<ProblemDetail> handleAvailability(AvailabilityException ex) {
+        log.warn("Availability error: {}", ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Availability Error");
         problem.setProperty("timestamp", Instant.now());
         problem.setProperty("correlationId", MDC.get("correlationId"));
         return ResponseEntity.badRequest().body(problem);

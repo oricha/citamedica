@@ -58,6 +58,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework:spring-aspects'
+    implementation 'com.sendgrid:sendgrid-java:4.10.2'
+    implementation 'com.twilio.sdk:twilio:9.2.0'
     implementation 'commons-codec:commons-codec'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'net.logstash.logback:logstash-logback-encoder:7.4'

@@ -8,6 +8,7 @@ public class UpdateAppointmentRequest {
     private String endAt;
     private String notes;
     private AppointmentStatus status;
+    private Long timeSlotId;
 
     public String getType() {
         return type;
@@ -47,5 +48,13 @@ public class UpdateAppointmentRequest {
 
     public void setStatus(AppointmentStatus status) {
         this.status = status;
+    }
+
+    public Long getTimeSlotId() {
+        return timeSlotId;
+    }
+
+    public void setTimeSlotId(Long timeSlotId) {
+        this.timeSlotId = timeSlotId;
     }
 }

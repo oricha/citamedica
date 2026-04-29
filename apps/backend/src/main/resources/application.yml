@@ -102,6 +102,28 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}
   notifications:
     enabled: ${NOTIFICATIONS_ENABLED:false}
+    sendgrid:
+      api-key: ${SENDGRID_API_KEY:}
+      api-url: ${SENDGRID_API_URL:https://api.sendgrid.com}
+      from: ${NOTIFICATIONS_FROM_EMAIL:no-reply@citamedica.com}
+    twilio:
+      account-sid: ${TWILIO_ACCOUNT_SID:}
+      auth-token: ${TWILIO_AUTH_TOKEN:}
+      api-url: ${TWILIO_API_URL:https://api.twilio.com}
+      from: ${NOTIFICATIONS_FROM_SMS:CitaMedica}
+    retry:
+      max-attempts: ${NOTIFICATION_RETRY_MAX_ATTEMPTS:3}
+      initial-delay-seconds: ${NOTIFICATION_RETRY_INITIAL_DELAY_SECONDS:60}
+  availability:
+    enforced: ${AVAILABILITY_ENFORCED:true}
+    slot-generation:
+      cron: "0 0 3 * * *"
+      horizon-days: 90
+      batch-size: 100
+      max-duration-alert-ms: 300000
+    sync:
+      enabled: true
+      fixed-delay-ms: 21600000
 
 # Logging configuration
 logging:

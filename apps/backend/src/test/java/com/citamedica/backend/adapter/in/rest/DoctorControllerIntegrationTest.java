@@ -2,8 +2,11 @@ package com.citamedica.backend.adapter.in.rest;
 
 import com.citamedica.backend.domain.model.Clinic;
 import com.citamedica.backend.domain.model.Doctor;
+import com.citamedica.backend.domain.repository.AppointmentRepository;
 import com.citamedica.backend.domain.repository.ClinicRepository;
 import com.citamedica.backend.domain.repository.DoctorRepository;
+import com.citamedica.backend.domain.repository.NotificationPreferenceRepository;
+import com.citamedica.backend.domain.repository.NotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,10 +38,22 @@ class DoctorControllerIntegrationTest {
     @Autowired
     private ClinicRepository clinicRepository;
 
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
+    private NotificationPreferenceRepository notificationPreferenceRepository;
+
     private Clinic clinic;
 
     @BeforeEach
     void setUp() {
+        notificationPreferenceRepository.deleteAll();
+        notificationRepository.deleteAll();
+        appointmentRepository.deleteAll();
         doctorRepository.deleteAll();
         clinicRepository.deleteAll();
 

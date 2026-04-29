@@ -70,7 +70,8 @@ public class AppointmentController {
                 startAt,
                 endAt,
                 request.getCalBookingId(),
-                request.getNotes()
+                request.getNotes(),
+                request.getTimeSlotId()
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(AppointmentResponse.from(appointment));
@@ -88,7 +89,8 @@ public class AppointmentController {
                 startAt,
                 endAt,
                 request.getNotes(),
-                request.getStatus()
+                request.getStatus(),
+                request.getTimeSlotId()
         );
         return ResponseEntity.ok(AppointmentResponse.from(updated));
     }

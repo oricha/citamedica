@@ -8,6 +8,8 @@ import com.citamedica.backend.domain.model.Patient;
 import com.citamedica.backend.domain.repository.AppointmentRepository;
 import com.citamedica.backend.domain.repository.ClinicRepository;
 import com.citamedica.backend.domain.repository.DoctorRepository;
+import com.citamedica.backend.domain.repository.NotificationPreferenceRepository;
+import com.citamedica.backend.domain.repository.NotificationRepository;
 import com.citamedica.backend.domain.repository.PatientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,12 @@ class AppointmentControllerIntegrationTest {
     @Autowired
     private ClinicRepository clinicRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
+    private NotificationPreferenceRepository notificationPreferenceRepository;
+
     private Doctor testDoctor;
     private Patient testPatient;
     private Clinic testClinic;
@@ -59,6 +67,8 @@ class AppointmentControllerIntegrationTest {
         String doctorEmail = "dr-" + UUID.randomUUID() + "@test.com";
         String patientEmail = "pt-" + UUID.randomUUID() + "@test.com";
 
+        notificationPreferenceRepository.deleteAll();
+        notificationRepository.deleteAll();
         appointmentRepository.deleteAll();
         doctorRepository.deleteAll();
         patientRepository.deleteAll();

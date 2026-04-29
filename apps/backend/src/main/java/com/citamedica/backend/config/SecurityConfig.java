@@ -68,6 +68,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/patients").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/patients/*").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/patients/*").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/patients/*/notification-preferences").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/patients/*/notification-preferences").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/patients/*/notifications").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         
                         // Doctor endpoints - require CLINIC_MANAGER or ADMIN roles
                         .requestMatchers(HttpMethod.GET, "/api/v1/doctors").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF")
@@ -79,8 +82,19 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/appointments").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/appointments/*").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/appointments/*").hasAnyRole("STAFF", "DOCTOR", "ADMIN")
-                        
-                        // All other endpoints require authentication
+                        .requestMatchers("/api/v1/admin/notifications/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/availability/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/availability-configuration/**").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF", "DOCTOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/doctors/*/availability-configuration/**").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/doctors/*/availability-configuration/**").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/*/availability-configuration/**").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/availability-blocks/**").hasAnyRole("CLINIC_MANAGER", "ADMIN", "STAFF", "DOCTOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/doctors/*/availability-blocks/**").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/doctors/*/availability-blocks/**").hasAnyRole("CLINIC_MANAGER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/available-slots/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

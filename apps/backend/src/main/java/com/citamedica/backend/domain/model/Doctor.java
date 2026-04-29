@@ -2,6 +2,10 @@ package com.citamedica.backend.domain.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "doctor")
@@ -30,6 +34,15 @@ public class Doctor {
 
     @Column(nullable = false)
     private Boolean active = true;
+
+    @Column(nullable = false, length = 64)
+    private String timezone = "America/Sao_Paulo";
+
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DoctorAvailabilityConfiguration> availabilityConfigurations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DoctorAvailabilityBlock> availabilityBlocks = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -64,4 +77,40 @@ public class Doctor {
     public void setActive(Boolean active) { this.active = active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
+
+    public List<DoctorAvailabilityConfiguration> getAvailabilityConfigurations() { return availabilityConfigurations; }
+
+    public List<DoctorAvailabilityBlock> getAvailabilityBlocks() { return availabilityBlocks; }
+
+    public void addAvailabilityConfiguration(DoctorAvailabilityConfiguration configuration) {
+        availabilityConfigurations.add(configuration);
+        configuration.setDoctor(this);
+    }
+
+    public void addAvailabilityBlock(DoctorAvailabilityBlock block) {
+        availabilityBlocks.add(block);
+        block.setDoctor(this);
+    }
+
+    public Optional<DoctorAvailabilityConfiguration> getAvailabilityConfig(ScheduleDayOfWeek day) {
+        return availabilityConfigurations.stream()
+                .filter(c -> c.getDayOfWeek() == day)
+                .findFirst();
+    }
+
+    /**
+     * Lightweight check: whether the doctor has configuration covering the local time's day and hour window.
+     */
+    public boolean isAvailable(LocalDateTime localDateTime) {
+        ScheduleDayOfWeek day = ScheduleDayOfWeek.fromJava(localDateTime.getDayOfWeek());
+        return getAvailabilityConfig(day)
+                .filter(c -> {
+                    LocalTime t = localDateTime.toLocalTime();
+                    return !t.isBefore(c.getStartTime()) && t.isBefore(c.getEndTime());
+                })
+                .isPresent();
+    }
 }

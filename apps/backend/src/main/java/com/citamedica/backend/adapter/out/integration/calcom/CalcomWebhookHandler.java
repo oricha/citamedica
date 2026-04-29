@@ -10,6 +10,8 @@ import com.citamedica.backend.domain.repository.AppointmentRepository;
 import com.citamedica.backend.domain.repository.DoctorRepository;
 import com.citamedica.backend.domain.repository.PatientRepository;
 import com.citamedica.backend.application.AuditService;
+import com.citamedica.backend.application.usecase.SyncCalComCalendarUseCase;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -37,18 +39,21 @@ public class CalcomWebhookHandler {
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
     private final AuditService auditService;
+    private final SyncCalComCalendarUseCase syncCalComCalendarUseCase;
 
     public CalcomWebhookHandler(
             ObjectMapper objectMapper,
             AppointmentRepository appointmentRepository,
             DoctorRepository doctorRepository,
             PatientRepository patientRepository,
-            AuditService auditService) {
+            AuditService auditService,
+            @Lazy SyncCalComCalendarUseCase syncCalComCalendarUseCase) {
         this.objectMapper = objectMapper;
         this.appointmentRepository = appointmentRepository;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
         this.auditService = auditService;
+        this.syncCalComCalendarUseCase = syncCalComCalendarUseCase;
     }
 
     /**
@@ -140,7 +145,9 @@ public class CalcomWebhookHandler {
             appointment.setUpdatedAt(LocalDateTime.now());
             
             appointmentRepository.save(appointment);
-            
+
+            triggerAvailabilitySync(doctor.getId());
+
             // Audit log
             auditService.logAction("calcom", "CREATE", "Appointment", appointment.getId(),
                     String.format("Created from Cal.com booking %s", calBookingId));
@@ -186,7 +193,9 @@ public class CalcomWebhookHandler {
             appointment.setUpdatedAt(LocalDateTime.now());
             
             appointmentRepository.save(appointment);
-            
+
+            triggerAvailabilitySync(appointment.getDoctor().getId());
+
             // Audit log
             auditService.logAction("calcom", "UPDATE", "Appointment", appointment.getId(),
                     String.format("Rescheduled Cal.com booking %s", calBookingId));
@@ -225,7 +234,9 @@ public class CalcomWebhookHandler {
             appointment.setUpdatedAt(LocalDateTime.now());
             
             appointmentRepository.save(appointment);
-            
+
+            triggerAvailabilitySync(appointment.getDoctor().getId());
+
             // Audit log
             auditService.logAction("calcom", "DELETE", "Appointment", appointment.getId(),
                     String.format("Canceled Cal.com booking %s", calBookingId));
@@ -262,6 +273,14 @@ public class CalcomWebhookHandler {
         logger.info("Created new patient with email: {}", email);
         
         return patient;
+    }
+
+    private void triggerAvailabilitySync(Long doctorId) {
+        try {
+            syncCalComCalendarUseCase.execute(doctorId);
+        } catch (Exception ex) {
+            logger.warn("Availability sync after Cal.com webhook failed: {}", ex.getMessage());
+        }
     }
 
     /**

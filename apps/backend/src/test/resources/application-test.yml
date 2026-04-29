@@ -44,3 +44,7 @@ app:
     allowed-origins: http://localhost:3000,http://localhost:3001
   notifications:
     enabled: false
+  availability:
+    enforced: false
+    sync:
+      enabled: false

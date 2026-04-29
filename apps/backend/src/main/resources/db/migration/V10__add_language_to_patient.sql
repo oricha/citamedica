@@ -1,0 +1,2 @@
+ALTER TABLE patient
+    ADD COLUMN IF NOT EXISTS language_preference VARCHAR(10) NOT NULL DEFAULT 'es';

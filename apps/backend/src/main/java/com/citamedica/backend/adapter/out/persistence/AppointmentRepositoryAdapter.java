@@ -2,6 +2,7 @@ package com.citamedica.backend.adapter.out.persistence;
 
 import com.citamedica.backend.adapter.out.persistence.jpa.AppointmentJpaRepository;
 import com.citamedica.backend.domain.model.Appointment;
+import com.citamedica.backend.domain.model.AppointmentStatus;
 import com.citamedica.backend.domain.repository.AppointmentRepository;
 import org.springframework.stereotype.Repository;
 
@@ -39,6 +40,16 @@ public class AppointmentRepositoryAdapter implements AppointmentRepository {
     @Override
     public List<Appointment> findByStartAtBetween(LocalDateTime start, LocalDateTime end) {
         return jpa.findByStartAtBetween(start, end);
+    }
+
+    @Override
+    public long countOverlappingScheduled(Long doctorId, LocalDateTime startAt, LocalDateTime endAt) {
+        return jpa.countOverlapping(doctorId, startAt, endAt, AppointmentStatus.SCHEDULED);
+    }
+
+    @Override
+    public long countOverlappingScheduledExcluding(Long doctorId, LocalDateTime startAt, LocalDateTime endAt, Long excludeAppointmentId) {
+        return jpa.countOverlappingExcluding(doctorId, startAt, endAt, AppointmentStatus.SCHEDULED, excludeAppointmentId);
     }
 
     @Override

@@ -24,6 +24,9 @@ public class CreateAppointmentRequest {
     
     private String notes;
 
+    /** Optional explicit slot id when {@code app.availability.enforced} is true. */
+    private Long timeSlotId;
+
     // Constructors
     public CreateAppointmentRequest() {}
 
@@ -93,5 +96,13 @@ public class CreateAppointmentRequest {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public Long getTimeSlotId() {
+        return timeSlotId;
+    }
+
+    public void setTimeSlotId(Long timeSlotId) {
+        this.timeSlotId = timeSlotId;
     }
 }
